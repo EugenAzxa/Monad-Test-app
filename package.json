@@ -1,0 +1,16 @@
+{
+  "name": "willvault",
+  "version": "1.0.0",
+  "description": "Tamper-proof digital will & document vault with dead-man's-switch inheritance, on Monad.",
+  "license": "MIT",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:monad": "hardhat run scripts/deploy.js --network monadTestnet",
+    "cryptotest": "node scripts/crypto-selftest.mjs"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.10"
+  }
+}

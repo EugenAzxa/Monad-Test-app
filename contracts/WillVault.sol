@@ -123,6 +123,36 @@ contract WillVault {
     event ManuallyReleased(address indexed owner, uint64 timestamp);
     event VaultClaimed(address indexed owner, address indexed heir, uint64 timestamp);
 
+    // ----------------------------------------------------------------------
+    // 3) ENDOWMENT (yield-bearing inheritance / insurance payout) + $LEGACY
+    // ----------------------------------------------------------------------
+
+    mapping(address => uint256) public endowment;      // MON principal deposited by an owner, held for heirs
+    mapping(address => uint64)  public endowmentSince; // when the deposit started (for projected yield)
+    uint256 public totalValueLocked;                   // total MON held across all vaults
+
+    // $LEGACY: the ecosystem's economic unit. Non-transferable reward points in this
+    // prototype (production = ERC-20 with utility). Earned by engaging with the protocol,
+    // so the supply and participant count grow as the community grows.
+    mapping(address => uint256) public legacyBalance;  // $LEGACY earned per user
+    uint256 public legacySupply;                       // total $LEGACY minted (grows with engagement)
+    uint256 public participants;                       // unique addresses that have earned $LEGACY
+    uint16  public constant YIELD_BPS = 800;           // 8.00% APR, illustrative projection for the UI
+
+    event Deposited(address indexed owner, uint256 amount, uint256 newPrincipal);
+    event EndowmentWithdrawn(address indexed owner, uint256 amount);
+    event EndowmentPaid(address indexed owner, address indexed heir, uint256 amount);
+    event LegacyEarned(address indexed user, uint256 amount, string reason);
+
+    /// @dev Mint $LEGACY to a user for engaging; grows the ecosystem's economic unit.
+    function _award(address user, uint256 amount, string memory reason) internal {
+        if (amount == 0) return;
+        if (legacyBalance[user] == 0) participants++;
+        legacyBalance[user] += amount;
+        legacySupply += amount;
+        emit LegacyEarned(user, amount, reason);
+    }
+
     modifier hasVault(address owner) {
         require(vaults[owner].exists, "no vault");
         _;
@@ -144,6 +174,7 @@ contract WillVault {
 
         emit VaultCreated(msg.sender, checkInInterval);
         emit CheckedIn(msg.sender, uint64(block.timestamp), uint64(block.timestamp) + checkInInterval);
+        _award(msg.sender, 100, "create vault");
     }
 
     /// @notice Proof of life. Resets the countdown. Call this regularly to stay "alive".
@@ -152,6 +183,34 @@ contract WillVault {
         require(!v.releasedManually, "already released");
         v.lastCheckIn = uint64(block.timestamp);
         emit CheckedIn(msg.sender, uint64(block.timestamp), uint64(block.timestamp) + v.checkInInterval);
+        _award(msg.sender, 10, "check in");
+    }
+
+    /**
+     * @notice Deposit MON into your vault as an endowment. It stays yours (withdrawable
+     *         any time before release) and is paid to the first heir who claims after
+     *         release - a will that doubles as a life-insurance payout. Earns $LEGACY.
+     */
+    function deposit() external payable hasVault(msg.sender) {
+        require(msg.value > 0, "no value");
+        if (endowment[msg.sender] == 0) endowmentSince[msg.sender] = uint64(block.timestamp);
+        endowment[msg.sender] += msg.value;
+        totalValueLocked += msg.value;
+        _award(msg.sender, 30 + (msg.value / 1e16), "deposit"); // base + scaled with size
+        emit Deposited(msg.sender, msg.value, endowment[msg.sender]);
+    }
+
+    /// @notice Withdraw your endowment (only before the vault releases).
+    function withdrawEndowment() external hasVault(msg.sender) {
+        require(!isReleased(msg.sender), "released");
+        uint256 amount = endowment[msg.sender];
+        require(amount > 0, "nothing to withdraw");
+        endowment[msg.sender] = 0;
+        endowmentSince[msg.sender] = 0;
+        totalValueLocked -= amount;
+        (bool ok, ) = payable(msg.sender).call{value: amount}("");
+        require(ok, "transfer failed");
+        emit EndowmentWithdrawn(msg.sender, amount);
     }
 
     /// @notice Change how long you may stay silent before release.
@@ -199,6 +258,7 @@ contract WillVault {
         }
 
         emit DocumentAdded(msg.sender, documentHash, title);
+        _award(msg.sender, 25, "add document");
     }
 
     /**
@@ -222,6 +282,7 @@ contract WillVault {
         h.wrappedKey = wrappedKey;
         h.ephemeralPubKey = ephemeralPubKey;
         emit HeirAdded(msg.sender, heir);
+        _award(msg.sender, 50, "add heir");
     }
 
     /// @notice Remove an heir before release.
@@ -274,6 +335,18 @@ contract WillVault {
         require(h.exists, "not an heir");
         h.claimed = true;
         emit VaultClaimed(owner, msg.sender, uint64(block.timestamp));
+        _award(msg.sender, 40, "claim inheritance");
+
+        // Life-insurance payout: the first heir to claim receives the endowment.
+        uint256 payout = endowment[owner];
+        if (payout > 0) {
+            endowment[owner] = 0;
+            endowmentSince[owner] = 0;
+            totalValueLocked -= payout;
+            (bool ok, ) = payable(msg.sender).call{value: payout}("");
+            require(ok, "payout failed");
+            emit EndowmentPaid(owner, msg.sender, payout);
+        }
     }
 
     // ----------------------------------------------------------------------
@@ -331,5 +404,33 @@ contract WillVault {
     /// @notice Whether a given address is a named heir of an owner.
     function isHeir(address owner, address heir) external view returns (bool) {
         return heirs[owner][heir].exists;
+    }
+
+    /**
+     * @notice Endowment info for an owner: deposited principal, deposit time, and the
+     *         8% APR projected value right now (illustrative - the contract holds the
+     *         principal; production routes it into a yield protocol so it truly grows).
+     */
+    function getEndowment(address owner)
+        external
+        view
+        returns (uint256 principal, uint64 since, uint256 projectedValue)
+    {
+        principal = endowment[owner];
+        since = endowmentSince[owner];
+        projectedValue = principal;
+        if (principal > 0 && since > 0 && block.timestamp > since) {
+            uint256 elapsed = block.timestamp - since;
+            projectedValue = principal + (principal * YIELD_BPS * elapsed) / (10000 * 365 days);
+        }
+    }
+
+    /// @notice Ecosystem snapshot for the UI: how the economic unit is growing.
+    function ecosystem()
+        external
+        view
+        returns (uint256 tvl, uint256 legacyMinted, uint256 numParticipants)
+    {
+        return (totalValueLocked, legacySupply, participants);
     }
 }

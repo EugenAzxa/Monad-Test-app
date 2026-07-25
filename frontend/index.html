@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>WillVault — On-chain Digital Inheritance on Monad</title>
+<title>WillVault - On-chain Digital Inheritance on Monad</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
 <style>
   :root{
@@ -91,13 +91,135 @@
   a{color:var(--accent)}
   hr{border:0;border-top:1px solid var(--line);margin:20px 0}
   .foot{text-align:center;color:var(--muted);font-size:12px;padding:0 22px 50px}
+  /* ---------- Explainer / animation ---------- */
+  .explain{max-width:940px;margin:8px auto 0;padding:26px 22px 6px}
+  .flow{display:flex;align-items:stretch;justify-content:center;gap:0;flex-wrap:wrap;margin-top:6px}
+  .fstep{flex:1;min-width:210px;max-width:270px;text-align:center;padding:24px 20px;background:var(--surface);
+    border:1px solid var(--line);border-radius:22px;box-shadow:0 1px 3px rgba(0,0,0,.05);
+    opacity:0;transform:translateY(18px);animation:riseIn .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .fstep:nth-of-type(1){animation-delay:.05s}
+  .fstep:nth-of-type(3){animation-delay:.3s}
+  .fstep:nth-of-type(5){animation-delay:.55s}
+  .fstep h3{margin:14px 0 6px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+  .fstep p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.5}
+  .ficon{width:58px;height:58px;margin:0 auto;border-radius:17px;display:grid;place-items:center;font-size:27px;
+    background:var(--tint);color:var(--accent)}
+  .fline{flex:0 0 44px;align-self:center;height:2px;border-radius:2px;
+    background:linear-gradient(90deg,var(--line),var(--accent),var(--line));background-size:200% 100%;
+    animation:flowline 2.4s linear infinite;opacity:.75}
+  @media(max-width:730px){.fline{display:none}}
+  .heartbeat{animation:beat 1.15s ease-in-out infinite}
+  @keyframes beat{0%,100%{transform:scale(1)}12%{transform:scale(1.2)}24%{transform:scale(1)}38%{transform:scale(1.12)}52%{transform:scale(1)}}
+  @keyframes riseIn{to{opacity:1;transform:translateY(0)}}
+  @keyframes flowline{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .dms{max-width:600px;margin:32px auto 0;text-align:center}
+  .dms-track{position:relative;height:46px;border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+  .dms-track::before{content:"";position:absolute;top:50%;left:0;right:0;height:2px;background:var(--line);transform:translateY(-50%)}
+  .dms-pulse{position:absolute;top:0;bottom:0;width:130px;left:-150px;
+    background:linear-gradient(90deg,transparent,var(--accent) 50%,transparent);opacity:.85;
+    filter:drop-shadow(0 0 7px var(--accent));animation:sweep 2.6s linear infinite}
+  @keyframes sweep{0%{left:-150px}100%{left:100%}}
+  .dms-label{margin-top:12px;font-size:13.5px;color:var(--muted);font-weight:500}
+  .dms-label b{color:var(--accent)}
+  /* ---------- World map ---------- */
+  .worldmap{max-width:780px;margin:36px auto 0;position:relative}
+  .wm-img{width:100%;aspect-ratio:1000/386;background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.92}
+  .worldmap .arcs{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+  .worldmap .node{fill:var(--accent);filter:drop-shadow(0 0 5px var(--accent))}
+  .worldmap .arc{fill:none;stroke:var(--accent);stroke-width:1.4;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;animation:drawArc 5.5s ease-in-out infinite}
+  .worldmap .trav{fill:#fff;stroke:var(--accent);stroke-width:1.4;filter:drop-shadow(0 0 6px var(--accent))}
+  @keyframes drawArc{0%{stroke-dashoffset:100;opacity:0}25%{opacity:1}55%{stroke-dashoffset:0;opacity:1}85%{stroke-dashoffset:0;opacity:.9}100%{stroke-dashoffset:0;opacity:0}}
+  .worldmap .node{animation:nodePulse 2.6s ease-in-out infinite}
+  @keyframes nodePulse{0%,100%{opacity:.7}50%{opacity:1}}
+  .wm-cap{text-align:center;margin-top:16px;font-size:14.5px;color:var(--muted);font-weight:500}
+  .wm-cap b{color:var(--accent)}
+  .conflicts .cdot{fill:#ff3b30}
+  .conflicts .cwave{fill:none;stroke:#ff3b30;stroke-width:1.5;opacity:0;animation:cwave 2.6s ease-out infinite}
+  @keyframes cwave{0%{r:2;opacity:.85}100%{r:16;opacity:0}}
+  .wm-stats{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:20px}
+  .ws{flex:1;min-width:150px;max-width:230px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .wsv{font-size:26px;font-weight:700;letter-spacing:-.02em;color:#ff3b30}
+  .wsk{color:var(--muted);font-size:12.5px;margin-top:4px;line-height:1.4}
+  /* ---------- Profile & history ---------- */
+  .prof{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .prof-av{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:16px;color:#fff;font-weight:700;flex:0 0 auto;letter-spacing:.5px}
+  .prof-meta{flex:1;min-width:180px}
+  .prof-addr{font-weight:600;font-size:18px;letter-spacing:-.01em}
+  .prof-sub{margin-top:3px;font-size:12px}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+  .stat{flex:1;min-width:110px;background:#f9f9fb;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .stat .k{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+  .stat .v{font-size:20px;font-weight:600;margin-top:5px;letter-spacing:-.02em}
+  .hitem{display:flex;gap:13px;align-items:flex-start;padding:14px 2px;border-bottom:1px solid var(--line)}
+  .hitem:last-child{border-bottom:0}
+  .hicon{width:38px;height:38px;border-radius:11px;background:var(--tint);display:grid;place-items:center;font-size:18px;flex:0 0 auto}
+  .hbody{flex:1;min-width:0}
+  .htitle{font-weight:600;font-size:14.5px}
+  .hsub{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .htime{color:var(--muted);font-size:12px;white-space:nowrap;flex:0 0 auto;padding-top:2px}
+  /* ---------- Tab examples ---------- */
+  .example{background:var(--tint);border:1px solid #e7e3fb;border-radius:18px;padding:18px;margin:0 0 22px}
+  .exflow{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap}
+  .exstep{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);border-radius:980px;padding:8px 14px;font-size:13px;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .exi{font-size:16px}
+  .exar{color:var(--accent);font-weight:700;font-size:15px}
+  .excap{text-align:center;color:var(--muted);font-size:13.5px;line-height:1.55;margin-top:14px;max-width:560px;margin-left:auto;margin-right:auto}
+  .excap b{color:var(--accent)}
+  /* ---------- Contacts ---------- */
+  .contact{display:flex;align-items:flex-start;gap:12px;background:#f9f9fb;border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px;flex-wrap:wrap}
+  .cav{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;flex:0 0 auto;letter-spacing:.4px}
+  .cbody{flex:1;min-width:180px}
+  .cname{font-weight:600;font-size:15px}
+  .cmeta{color:var(--muted);font-size:12.5px;margin-top:2px;word-break:break-all}
+  .cbadges{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .badge{display:inline-block;padding:3px 9px;border-radius:980px;font-size:11px;font-weight:600}
+  .badge.rx{background:#e7fbef;color:#1a7f37;border:1px solid #b7e6c8}
+  .badge.on{background:var(--tint);color:var(--accent);border:1px solid #d9d2fb}
+  .cact{display:flex;gap:7px;flex-wrap:wrap;width:100%;margin-top:10px}
+  .ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle}
+  .mk .ic{width:17px;height:17px;stroke:#fff}
+  .ficon .ic{width:27px;height:27px}
+  .exi{display:inline-flex;align-items:center;color:var(--accent)}
+  .exi .ic{width:17px;height:17px;stroke-width:2}
+  .step .ic{width:15px;height:15px}
+  .hicon{color:var(--accent)}
+  .hicon .ic{width:19px;height:19px}
+  button:has(.ic){display:inline-flex;align-items:center}
+  button .ic{width:15px;height:15px;margin-right:7px}
+  #cursorGlow{position:fixed;inset:0;pointer-events:none;z-index:40;background:radial-gradient(520px circle at var(--mx,-600px) var(--my,-600px), rgba(109,85,240,.11), rgba(109,85,240,.04) 42%, transparent 64%)}
+  .card{transition:transform .22s ease, box-shadow .22s ease}
+  .card:hover{transform:translateY(-2px);box-shadow:0 10px 34px rgba(29,21,80,.07)}
+  .fstep{transition:transform .22s ease, box-shadow .22s ease}
+  .fstep:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(29,21,80,.08)}
+  .exstep{transition:transform .15s ease}
+  .exstep:hover{transform:translateY(-1px)}
+  /* ---------- Proof of Life ---------- */
+  .netrow{display:flex;align-items:center;gap:12px;background:#f9f9fb;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;flex-wrap:wrap}
+  .netchip{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;flex:0 0 auto}
+  .netbody{flex:1;min-width:150px}
+  .netname{font-weight:600;font-size:14.5px}
+  .netmeta{color:var(--muted);font-size:12.5px;margin-top:1px}
+  .netmeta .live{color:var(--good);font-weight:600}
+  .netmeta .demo{color:var(--accent);font-weight:600}
+  .lifebig{display:flex;align-items:center;gap:14px;background:#f4fbf6;border:1px solid #bfe6cd;border-radius:16px;padding:18px}
+  .lifebig.silent{background:#fff5f5;border-color:#f2c2c2}
+  .lifedot{width:14px;height:14px;border-radius:50%;background:var(--good);flex:0 0 auto;position:relative}
+  .lifebig.silent .lifedot{background:var(--bad)}
+  .lifedot::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--good);opacity:.5;animation:ping 1.8s ease-out infinite}
+  .lifebig.silent .lifedot::after{border-color:var(--bad)}
+  @keyframes ping{0%{transform:scale(.6);opacity:.6}100%{transform:scale(1.6);opacity:0}}
+  .lifetitle{font-weight:700;font-size:17px}
+  .lifesub{color:var(--muted);font-size:13px;margin-top:2px}
 </style>
 </head>
 <body>
+<div id="cursorGlow"></div>
 <nav>
-  <div class="brand"><span class="mk">🔐</span> WillVault <span class="sub">Monad</span></div>
+  <div class="brand"><span class="mk"><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="11" width="17" height="10" rx="2"/><path d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11"/></svg></span> WillVault <span class="sub">Monad</span></div>
   <div class="navr">
     <span id="netPill" class="pill"><span class="dot"></span> Not connected</span>
+    <button class="ghost small" id="navEarn">Earn</button>
+    <button class="ghost small" id="navProfile">Profile</button>
     <button id="connectBtn">Connect Wallet</button>
   </div>
 </nav>
@@ -107,16 +229,54 @@
   <h1>Your legacy,<br>secured forever.</h1>
   <p>Notarize what matters, pass it on automatically, and give your heirs a key that only opens when it must.</p>
   <div class="conn">
-    <input id="contractAddr" value="0xd4EF7228A70d1d9Bd11a2b7333d5b37F4799CF77" placeholder="Deployed contract address" />
+    <input id="contractAddr" value="0xF8c54fA60e229d0d804B4BdDD509f151dE153F1b" placeholder="Deployed contract address" />
     <button class="ghost" id="addNetBtn">Add Monad Testnet</button>
   </div>
 </header>
+
+<section class="explain">
+  <div class="sechead">
+    <div class="eyebrow">Why it matters</div>
+    <h2>Don't let your legacy die with you.</h2>
+    <p>Wills get lost, deeds get contested, and crypto keys vanish forever when their owner is gone. WillVault makes sure what matters reaches the people it's meant for - automatically.</p>
+  </div>
+  <div class="flow">
+    <div class="fstep">
+      <div class="ficon"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.4 3 7.9 7 9.6 4-1.7 7-5.2 7-9.6V6Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+      <h3>1 · Protect</h3>
+      <p>Encrypt and notarize your documents on-chain. Tamper-proof, timestamped, and readable only by you.</p>
+    </div>
+    <div class="fline"></div>
+    <div class="fstep">
+      <div class="ficon heartbeat"><svg class="ic" viewBox="0 0 24 24"><path d="M19 14c1.5-1.46 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.04 3 5.5l7 7Z"/></svg></div>
+      <h3>2 · Check in</h3>
+      <p>A simple heartbeat proves you're still here. Keep checking in and nothing is ever revealed.</p>
+    </div>
+    <div class="fline"></div>
+    <div class="fstep">
+      <div class="ficon"><svg class="ic" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.3 12.7 20 3"/><path d="M16 5l3 3"/><path d="M18 7l2.5 2.5"/></svg></div>
+      <h3>3 · Inherit</h3>
+      <p>Go silent past your limit and the vault releases - your heirs unlock exactly what you left them.</p>
+    </div>
+  </div>
+  <div class="worldmap">
+    <div class="wm-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDM4NiI+PGcgZmlsbD0iI2NmY2JlNiI+PGNpcmNsZSBjeD0iOSIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxOSIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzOCIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0NyIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0NyIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0NyIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NyIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NyIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NyIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NyIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NyIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NiIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NiIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NiIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NiIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NiIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NiIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NiIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NSIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NSIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NSIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5NCIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5NCIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5NCIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxMDQiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTA0IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjEwNCIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxMTMiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTEzIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjExMyIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxMjMiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTIzIiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjEyMyIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxMzIiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTMyIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjEzMiIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxMzIiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTQyIiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE0MiIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNDIiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTQyIiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE0MiIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNTEiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTUxIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE1MSIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNTEiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTUxIiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE1MSIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNTEiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTYxIiBjeT0iMTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE2MSIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNjEiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTYxIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE2MSIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNjEiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTYxIiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE2MSIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNjEiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTYxIiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNjEiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE2MSIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTcwIiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE3MCIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNzAiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTcwIiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE3MCIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNzAiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTcwIiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE3MCIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTcwIiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNzAiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE3MCIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTc5IiBjeT0iMTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE3OSIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNzkiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTc5IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE3OSIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNzkiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTc5IiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE3OSIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNzkiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTc5IiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNzkiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE3OSIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTc5IiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxNzkiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE4OSIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxODkiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTg5IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE4OSIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxODkiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTg5IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE4OSIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxODkiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE4OSIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTg5IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxODkiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE4OSIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTg5IiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxOTgiIGN5PSIxOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTk4IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE5OCIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxOTgiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTk4IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE5OCIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxOTgiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTk4IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE5OCIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTk4IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxOTgiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjE5OCIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMTk4IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIxOTgiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIwOCIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMDgiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjA4IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIwOCIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMDgiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjA4IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIwOCIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMDgiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIwOCIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjA4IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMDgiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIwOCIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjA4IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMDgiIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIwOCIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjE3IiBjeT0iMTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIxNyIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMTciIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjE3IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIxNyIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMTciIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjE3IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIxNyIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjE3IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMTciIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIxNyIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjE3IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMTciIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIxNyIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjE3IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMTciIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIyNyIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMjciIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjI3IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIyNyIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMjciIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjI3IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIyNyIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMjciIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjI3IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIyNyIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjI3IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMjciIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIyNyIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjI3IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMjciIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIyNyIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjI3IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMjciIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIzNiIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIzNiIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMzYiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjM2IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIzNiIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMzYiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjM2IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIzNiIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMzYiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIzNiIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjM2IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyMzYiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjIzNiIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjM2IiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNDYiIGN5PSI5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNDYiIGN5PSIxOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjQ2IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI0NiIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNDYiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjQ2IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI0NiIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNDYiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI0NiIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjQ2IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNDYiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI0NiIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjQ2IiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNDYiIGN5PSIxODkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI1NSIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI1NSIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNTUiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjU1IiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI1NSIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNTUiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjU1IiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNTUiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI1NSIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjU1IiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNTUiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI1NSIgY3k9IjE4OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjY0IiBjeT0iOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjY0IiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI2NCIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNjQiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjY0IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI2NCIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjY0IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNjQiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI2NCIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjY0IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNjQiIGN5PSIxODkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI2NCIgY3k9IjE5OCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjc0IiBjeT0iOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjc0IiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI3NCIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNzQiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI3NCIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjc0IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNzQiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI3NCIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjc0IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyNzQiIGN5PSIyMDgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI4MyIgY3k9IjAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI4MyIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI4MyIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyODMiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjgzIiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI4MyIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjgzIiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyODMiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI4MyIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjgzIiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyODMiIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI4MyIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjgzIiBjeT0iMjI3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyODMiIGN5PSIyMzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI4MyIgY3k9IjI0NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjgzIiBjeT0iMjU1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyOTMiIGN5PSIwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyOTMiIGN5PSI5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyOTMiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjkzIiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI5MyIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyOTMiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjkzIiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI5MyIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjkzIiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyOTMiIGN5PSIyMDgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI5MyIgY3k9IjIxNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjkzIiBjeT0iMjI3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyOTMiIGN5PSIyMzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI5MyIgY3k9IjI0NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjkzIiBjeT0iMjU1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyOTMiIGN5PSIyNjQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjI5MyIgY3k9IjI3NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMjkzIiBjeT0iMzU5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIyOTMiIGN5PSIzNjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMwMiIgY3k9IjAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMwMiIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMDIiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzAyIiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMwMiIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMDIiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzAyIiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMwMiIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzAyIiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMDIiIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMwMiIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzAyIiBjeT0iMjE3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMDIiIGN5PSIyMjciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMwMiIgY3k9IjIzNiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzAyIiBjeT0iMjQ2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMDIiIGN5PSIyNTUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMwMiIgY3k9IjI2NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzAyIiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMDIiIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMwMiIgY3k9IjMyMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzAyIiBjeT0iMzMxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMDIiIGN5PSIzNDAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMwMiIgY3k9IjM0OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzAyIiBjeT0iMzU5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMDIiIGN5PSIzNjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMwMiIgY3k9IjM3OCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzEyIiBjeT0iMCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzEyIiBjeT0iMTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMxMiIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMTIiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzEyIiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMxMiIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMTIiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMxMiIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzEyIiBjeT0iMjE3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMTIiIGN5PSIyMjciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMxMiIgY3k9IjIzNiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzEyIiBjeT0iMjQ2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMTIiIGN5PSIyNTUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMxMiIgY3k9IjI2NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzEyIiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMTIiIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMxMiIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzEyIiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMTIiIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMxMiIgY3k9IjMyMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzEyIiBjeT0iMzMxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMTIiIGN5PSIzNDAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMxMiIgY3k9IjM0OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzEyIiBjeT0iMzU5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMTIiIGN5PSIzNjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMyMSIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMyMSIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMjEiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzIxIiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMyMSIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMjEiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzIxIiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMjEiIGN5PSIyMDgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMyMSIgY3k9IjIxNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzIxIiBjeT0iMjI3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMjEiIGN5PSIyMzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMyMSIgY3k9IjI0NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzIxIiBjeT0iMjU1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMjEiIGN5PSIyNjQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMyMSIgY3k9IjI3NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzIxIiBjeT0iMjgzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMjEiIGN5PSIyOTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMyMSIgY3k9IjMwMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzIxIiBjeT0iMzEyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMjEiIGN5PSIzMjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMyMSIgY3k9IjMzMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzIxIiBjeT0iMzQwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMjEiIGN5PSIzNDkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMzMSIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMzMSIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMzEiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzMxIiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMzMSIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzMxIiBjeT0iMjA4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMzEiIGN5PSIyMTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMzMSIgY3k9IjIyNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzMxIiBjeT0iMjM2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMzEiIGN5PSIyNDYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMzMSIgY3k9IjI1NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzMxIiBjeT0iMjY0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMzEiIGN5PSIyNzQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMzMSIgY3k9IjI4MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzMxIiBjeT0iMjkzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMzEiIGN5PSIzMDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjMzMSIgY3k9IjMxMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzMxIiBjeT0iMzIxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzMzEiIGN5PSIzMzEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0MCIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0MCIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNDAiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQwIiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0MCIgY3k9IjIxNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQwIiBjeT0iMjI3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNDAiIGN5PSIyMzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0MCIgY3k9IjI0NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQwIiBjeT0iMjU1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNDAiIGN5PSIyNjQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0MCIgY3k9IjI3NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQwIiBjeT0iMjgzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNDAiIGN5PSIyOTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0MCIgY3k9IjMwMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQwIiBjeT0iMzEyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNDAiIGN5PSIzMjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0MCIgY3k9IjMzMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQ5IiBjeT0iOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQ5IiBjeT0iMTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0OSIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNDkiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQ5IiBjeT0iMjE3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNDkiIGN5PSIyMjciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0OSIgY3k9IjIzNiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQ5IiBjeT0iMjQ2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNDkiIGN5PSIyNTUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0OSIgY3k9IjI2NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQ5IiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNDkiIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0OSIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzQ5IiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNDkiIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM0OSIgY3k9IjMyMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzU5IiBjeT0iOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzU5IiBjeT0iMTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM1OSIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNTkiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzU5IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM1OSIgY3k9IjIyNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzU5IiBjeT0iMjM2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNTkiIGN5PSIyNDYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM1OSIgY3k9IjI1NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzU5IiBjeT0iMjY0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNTkiIGN5PSIyNzQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM1OSIgY3k9IjI4MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzU5IiBjeT0iMjkzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNTkiIGN5PSIzMDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM1OSIgY3k9IjMxMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzY4IiBjeT0iOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzY4IiBjeT0iMTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM2OCIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNjgiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzY4IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM2OCIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNjgiIGN5PSIyMzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM2OCIgY3k9IjI0NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzY4IiBjeT0iMjU1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNjgiIGN5PSIyNjQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM2OCIgY3k9IjI3NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzY4IiBjeT0iMjgzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNjgiIGN5PSIyOTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM3OCIgY3k9IjAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM3OCIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM3OCIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNzgiIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzc4IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM3OCIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNzgiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzc4IiBjeT0iMjQ2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNzgiIGN5PSIyNTUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM3OCIgY3k9IjI2NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzc4IiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzNzgiIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM3OCIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzg3IiBjeT0iMCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzg3IiBjeT0iOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzg3IiBjeT0iMTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM4NyIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzODciIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzg3IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM4NyIgY3k9IjI0NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzg3IiBjeT0iMjU1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzODciIGN5PSIyNjQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM4NyIgY3k9IjI3NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzg3IiBjeT0iMjgzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzOTciIGN5PSIwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzOTciIGN5PSI5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzOTciIGN5PSIxOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzk3IiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjM5NyIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzOTciIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iMzk3IiBjeT0iMjQ2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSIzOTciIGN5PSIyNTUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQwNiIgY3k9IjAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQwNiIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQwNiIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0MDYiIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDA2IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQxNiIgY3k9IjAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQxNiIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQxNiIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0MTYiIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDE2IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQyNSIgY3k9IjAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQyNSIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQyNSIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0MjUiIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDI1IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQzNCIgY3k9IjAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQzNCIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQzNCIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0MzQiIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDM0IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ0NCIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ0NCIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0NTMiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDUzIiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0NTMiIGN5PSIxODkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ2MyIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDYzIiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0NjMiIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ2MyIgY3k9IjE4OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDYzIiBjeT0iMTk4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0NzIiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ3MiIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDcyIiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0NzIiIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ3MiIgY3k9IjE4OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDcyIiBjeT0iMTk4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0NzIiIGN5PSIyMDgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ4MiIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDgyIiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0ODIiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ4MiIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDgyIiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0ODIiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ4MiIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDgyIiBjeT0iMTg5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0ODIiIGN5PSIxOTgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ4MiIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDgyIiBjeT0iMjE3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0OTEiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDkxIiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ5MSIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDkxIiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0OTEiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ5MSIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDkxIiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0OTEiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ5MSIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNDkxIiBjeT0iMTg5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI0OTEiIGN5PSIxOTgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjQ5MSIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTAxIiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUwMSIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MDEiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUwMSIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTAxIiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MDEiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUwMSIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTAxIiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MDEiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUwMSIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTAxIiBjeT0iMTg5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MDEiIGN5PSIxOTgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUwMSIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTEwIiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUxMCIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTEwIiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MTAiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUxMCIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTEwIiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MTAiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUxMCIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTEwIiBjeT0iMTg5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MTAiIGN5PSIxOTgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUxMCIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTE5IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUxOSIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MTkiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTE5IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUxOSIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTE5IiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MTkiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUxOSIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTE5IiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MTkiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUxOSIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTE5IiBjeT0iMTg5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MTkiIGN5PSIxOTgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUxOSIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTE5IiBjeT0iMjE3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MjkiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTI5IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUyOSIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MjkiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUyOSIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTI5IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MjkiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUyOSIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTI5IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MjkiIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUyOSIgY3k9IjE4OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTI5IiBjeT0iMTk4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MjkiIGN5PSIyMDgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUyOSIgY3k9IjIxNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTI5IiBjeT0iMjI3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MjkiIGN5PSIyMzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUzOCIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUzOCIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MzgiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTM4IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUzOCIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MzgiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTM4IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUzOCIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTM4IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MzgiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUzOCIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTM4IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MzgiIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUzOCIgY3k9IjE4OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTM4IiBjeT0iMTk4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MzgiIGN5PSIyMDgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUzOCIgY3k9IjIxNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTM4IiBjeT0iMjI3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MzgiIGN5PSIyMzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUzOCIgY3k9IjI0NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTM4IiBjeT0iMjU1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1MzgiIGN5PSIyNjQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjUzOCIgY3k9IjI3NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTM4IiBjeT0iMjgzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NDgiIGN5PSI5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NDgiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTQ4IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU0OCIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NDgiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTQ4IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU0OCIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTQ4IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NDgiIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU0OCIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTQ4IiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NDgiIGN5PSIxODkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU0OCIgY3k9IjE5OCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTQ4IiBjeT0iMjA4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NDgiIGN5PSIyMTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU0OCIgY3k9IjIyNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTQ4IiBjeT0iMjM2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NDgiIGN5PSIyNDYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU0OCIgY3k9IjI1NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTQ4IiBjeT0iMjY0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NDgiIGN5PSIyNzQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU0OCIgY3k9IjI4MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTQ4IiBjeT0iMjkzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NDgiIGN5PSIzMDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU0OCIgY3k9IjMxMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU1NyIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NTciIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU1NyIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NTciIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU1NyIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NTciIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU1NyIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iMTg5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NTciIGN5PSIxOTgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU1NyIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iMjE3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NTciIGN5PSIyMjciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU1NyIgY3k9IjIzNiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iMjQ2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NTciIGN5PSIyNTUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU1NyIgY3k9IjI2NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NTciIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU1NyIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTU3IiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NTciIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU1NyIgY3k9IjMyMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU2NyIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NjciIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU2NyIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NjciIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU2NyIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NjciIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU2NyIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NjciIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU2NyIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NjciIGN5PSIxODkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU2NyIgY3k9IjE5OCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iMjA4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NjciIGN5PSIyMTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU2NyIgY3k9IjIyNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iMjM2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NjciIGN5PSIyNDYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU2NyIgY3k9IjI1NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iMjY0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NjciIGN5PSIyNzQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU2NyIgY3k9IjI4MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iMjkzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NjciIGN5PSIzMDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU2NyIgY3k9IjMxMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTY3IiBjeT0iMzIxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NzYiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTc2IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU3NiIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NzYiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTc2IiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU3NiIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NzYiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTc2IiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NzYiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU3NiIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTc2IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NzYiIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU3NiIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTc2IiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NzYiIGN5PSIxODkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU3NiIgY3k9IjE5OCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTc2IiBjeT0iMjA4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NzYiIGN5PSIyMTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU3NiIgY3k9IjIyNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTc2IiBjeT0iMjM2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NzYiIGN5PSIyNDYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU3NiIgY3k9IjI1NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTc2IiBjeT0iMjY0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NzYiIGN5PSIyNzQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU3NiIgY3k9IjI4MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTc2IiBjeT0iMjkzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1NzYiIGN5PSIzMDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU3NiIgY3k9IjMxMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTc2IiBjeT0iMzIxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1ODYiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTg2IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU4NiIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1ODYiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTg2IiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU4NiIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1ODYiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTg2IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1ODYiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU4NiIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTg2IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1ODYiIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU4NiIgY3k9IjE4OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTg2IiBjeT0iMTk4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1ODYiIGN5PSIyMDgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU4NiIgY3k9IjIxNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTg2IiBjeT0iMjI3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1ODYiIGN5PSIyMzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU4NiIgY3k9IjI0NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTg2IiBjeT0iMjU1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1ODYiIGN5PSIyNjQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU4NiIgY3k9IjI3NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTg2IiBjeT0iMjgzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1ODYiIGN5PSIyOTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU4NiIgY3k9IjMwMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTg2IiBjeT0iMzEyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1OTUiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTk1IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU5NSIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1OTUiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTk1IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU5NSIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1OTUiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU5NSIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTk1IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1OTUiIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU5NSIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTk1IiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1OTUiIGN5PSIxODkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU5NSIgY3k9IjE5OCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTk1IiBjeT0iMjA4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1OTUiIGN5PSIyMTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU5NSIgY3k9IjIyNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTk1IiBjeT0iMjM2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1OTUiIGN5PSIyNDYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU5NSIgY3k9IjI1NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTk1IiBjeT0iMjY0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI1OTUiIGN5PSIyNzQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjU5NSIgY3k9IjI4MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNTk1IiBjeT0iMjkzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MDQiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjA0IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYwNCIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MDQiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjA0IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYwNCIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjA0IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MDQiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYwNCIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjA0IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MDQiIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYwNCIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjA0IiBjeT0iMTg5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MDQiIGN5PSIxOTgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYwNCIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjA0IiBjeT0iMjE3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MDQiIGN5PSIyMjciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYwNCIgY3k9IjIzNiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjA0IiBjeT0iMjQ2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MDQiIGN5PSIyNTUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYwNCIgY3k9IjI2NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjA0IiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MTQiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjE0IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYxNCIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MTQiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjE0IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYxNCIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MTQiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYxNCIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjE0IiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MTQiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYxNCIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjE0IiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MTQiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYxNCIgY3k9IjE5OCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjE0IiBjeT0iMjA4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MTQiIGN5PSIyMTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYxNCIgY3k9IjIyNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjE0IiBjeT0iMjM2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MjMiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjIzIiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYyMyIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MjMiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjIzIiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYyMyIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MjMiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYyMyIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjIzIiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MjMiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYyMyIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjIzIiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MjMiIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYyMyIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjIzIiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MjMiIGN5PSIxODkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYyMyIgY3k9IjIwOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjIzIiBjeT0iMjE3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MjMiIGN5PSIyMjciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYyMyIgY3k9IjI4MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjIzIiBjeT0iMjkzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MzMiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjMzIiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYzMyIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MzMiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjMzIiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYzMyIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MzMiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYzMyIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjMzIiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MzMiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYzMyIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjMzIiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MzMiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYzMyIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjMzIiBjeT0iMTg5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MzMiIGN5PSIyMDgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYzMyIgY3k9IjIxNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjMzIiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2MzMiIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjYzMyIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjQyIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY0MiIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NDIiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjQyIiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY0MiIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NDIiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjQyIiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NDIiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY0MiIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjQyIiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NDIiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY0MiIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjUyIiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY1MiIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NTIiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjUyIiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY1MiIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NTIiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjUyIiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY1MiIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjUyIiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NTIiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY1MiIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjUyIiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NTIiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY1MiIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjUyIiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NjEiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjYxIiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY2MSIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NjEiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjYxIiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY2MSIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NjEiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY2MSIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjYxIiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NjEiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY2MSIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjYxIiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NjEiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY3MSIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NzEiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjcxIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY3MSIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NzEiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjcxIiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY3MSIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NzEiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjcxIiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NzEiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY3MSIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjcxIiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2NzEiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY3MSIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjcxIiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2ODAiIGN5PSIxOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjgwIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY4MCIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2ODAiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjgwIiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY4MCIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2ODAiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjgwIiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2ODAiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY4MCIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjgwIiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2ODAiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY4MCIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjg5IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY4OSIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2ODkiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjg5IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY4OSIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2ODkiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjg5IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY4OSIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjg5IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2ODkiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY4OSIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjg5IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2ODkiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY4OSIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjk5IiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY5OSIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2OTkiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjk5IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY5OSIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2OTkiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjk5IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY5OSIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2OTkiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY5OSIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjk5IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2OTkiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY5OSIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNjk5IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI2OTkiIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjY5OSIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzA4IiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcwOCIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MDgiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzA4IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcwOCIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MDgiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzA4IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcwOCIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MDgiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcwOCIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzA4IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MDgiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcwOCIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzA4IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MDgiIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcwOCIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzA4IiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MDgiIGN5PSIxODkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcxOCIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MTgiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzE4IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcxOCIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MTgiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzE4IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcxOCIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MTgiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcxOCIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzE4IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MTgiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcxOCIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzE4IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MTgiIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcxOCIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzE4IiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MTgiIGN5PSIxODkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcxOCIgY3k9IjE5OCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzI3IiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcyNyIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MjciIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzI3IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcyNyIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MjciIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzI3IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcyNyIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MjciIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcyNyIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzI3IiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MjciIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcyNyIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzI3IiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MjciIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjcyNyIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzI3IiBjeT0iMTc5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MzciIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzM3IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjczNyIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MzciIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzM3IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjczNyIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MzciIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzM3IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjczNyIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzM3IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MzciIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjczNyIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzM3IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3MzciIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjczNyIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzM3IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NDYiIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzQ2IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc0NiIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NDYiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzQ2IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc0NiIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NDYiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzQ2IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc0NiIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzQ2IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NDYiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc0NiIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzQ2IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NDYiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc0NiIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzQ2IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NTYiIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzU2IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc1NiIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NTYiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzU2IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc1NiIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NTYiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzU2IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc1NiIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzU2IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NTYiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc1NiIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzU2IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NTYiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc1NiIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzU2IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NjUiIGN5PSI5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NjUiIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzY1IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc2NSIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NjUiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzY1IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc2NSIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NjUiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzY1IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc2NSIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzY1IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NjUiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc2NSIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzY1IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NjUiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc2NSIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzY1IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NjUiIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc3NCIgY3k9IjkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc3NCIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NzQiIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzc0IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc3NCIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NzQiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzc0IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc3NCIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NzQiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzc0IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc3NCIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzc0IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NzQiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc3NCIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzc0IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NzQiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc3NCIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzc0IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NzQiIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc3NCIgY3k9IjE4OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzc0IiBjeT0iMTk4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3NzQiIGN5PSIyMDgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc4NCIgY3k9IjE5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3ODQiIGN5PSIyOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzg0IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc4NCIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3ODQiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzg0IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc4NCIgY3k9Ijc2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3ODQiIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzg0IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc4NCIgY3k9IjEwNCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzg0IiBjeT0iMTEzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3ODQiIGN5PSIxMjMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc4NCIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzg0IiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3ODQiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc4NCIgY3k9IjE2MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzg0IiBjeT0iMTcwIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3ODQiIGN5PSIxNzkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc4NCIgY3k9IjE4OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzg0IiBjeT0iMjE3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3ODQiIGN5PSIyMjciIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc4NCIgY3k9IjIzNiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzkzIiBjeT0iMTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc5MyIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3OTMiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzkzIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc5MyIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3OTMiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzkzIiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc5MyIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3OTMiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzkzIiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3OTMiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc5MyIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzkzIiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3OTMiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc5MyIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzkzIiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3OTMiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc5MyIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iNzkzIiBjeT0iMTg5IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI3OTMiIGN5PSIxOTgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijc5MyIgY3k9IjI0NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODAzIiBjeT0iMTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgwMyIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MDMiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODAzIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgwMyIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MDMiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODAzIiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgwMyIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MDMiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODAzIiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MDMiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgwMyIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODAzIiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MDMiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgwMyIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODAzIiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MDMiIGN5PSIxNzAiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgwMyIgY3k9IjE3OSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODAzIiBjeT0iMTk4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MTIiIGN5PSIxOSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODEyIiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgxMiIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MTIiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODEyIiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgxMiIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MTIiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODEyIiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgxMiIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MTIiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgxMiIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODEyIiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MTIiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgxMiIgY3k9IjE0MiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODEyIiBjeT0iMTUxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MTIiIGN5PSIxNjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgxMiIgY3k9IjE3MCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODEyIiBjeT0iMjI3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MTIiIGN5PSIyMzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgyMiIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MjIiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODIyIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgyMiIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MjIiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODIyIiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgyMiIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MjIiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODIyIiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MjIiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgyMiIgY3k9IjEyMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODIyIiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MjIiIGN5PSIxNDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgyMiIgY3k9IjE1MSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODIyIiBjeT0iMTYxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MjIiIGN5PSIyMTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgyMiIgY3k9IjIyNyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODIyIiBjeT0iMjM2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MjIiIGN5PSIyOTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgyMiIgY3k9IjMwMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODIyIiBjeT0iMzEyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MjIiIGN5PSIzMjEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgzMSIgY3k9IjI4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MzEiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODMxIiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgzMSIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MzEiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODMxIiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgzMSIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MzEiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODMxIiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MzEiIGN5PSIxMTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgzMSIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODMxIiBjeT0iMTQyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MzEiIGN5PSIxNTEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgzMSIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODMxIiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4MzEiIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjgzMSIgY3k9IjMyMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODQxIiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg0MSIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NDEiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODQxIiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg0MSIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NDEiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODQxIiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg0MSIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NDEiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg0MSIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODQxIiBjeT0iMjQ2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NDEiIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg0MSIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODQxIiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NDEiIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg0MSIgY3k9IjMyMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODUwIiBjeT0iMjgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1MCIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTAiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODUwIiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1MCIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTAiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODUwIiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1MCIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTAiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1MCIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODUwIiBjeT0iMTIzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTAiIGN5PSIyMDgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1MCIgY3k9IjI1NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODUwIiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTAiIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1MCIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODUwIiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTAiIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1OSIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTkiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODU5IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1OSIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTkiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODU5IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1OSIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTkiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1OSIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODU5IiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTkiIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg1OSIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODU5IiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NTkiIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg2OSIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NjkiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODY5IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg2OSIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NjkiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODY5IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg2OSIgY3k9Ijk0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NjkiIGN5PSIxMDQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg2OSIgY3k9IjEzMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODY5IiBjeT0iMjM2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NjkiIGN5PSIyNjQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg2OSIgY3k9IjI3NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODY5IiBjeT0iMjgzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NjkiIGN5PSIyOTMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg2OSIgY3k9IjMwMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODY5IiBjeT0iMzEyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NzgiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODc4IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg3OCIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NzgiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODc4IiBjeT0iNzYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg3OCIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NzgiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODc4IiBjeT0iMTA0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NzgiIGN5PSIxMzIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg3OCIgY3k9IjI2NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODc4IiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NzgiIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg3OCIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODc4IiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4NzgiIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg3OCIgY3k9IjMyMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODg4IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg4OCIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4ODgiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODg4IiBjeT0iNjYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg4OCIgY3k9Ijg1IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4ODgiIGN5PSI5NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODg4IiBjeT0iMTMyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4ODgiIGN5PSIyNDYiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg4OCIgY3k9IjI4MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODg4IiBjeT0iMjkzIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4ODgiIGN5PSIzMDIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg4OCIgY3k9IjMxMiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODg4IiBjeT0iMzIxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4ODgiIGN5PSIzMzEiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg5NyIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4OTciIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODk3IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg5NyIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4OTciIGN5PSI4NSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODk3IiBjeT0iOTQiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg5NyIgY3k9IjExMyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODk3IiBjeT0iMjQ2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4OTciIGN5PSIyNTUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg5NyIgY3k9IjI2NCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODk3IiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4OTciIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg5NyIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODk3IiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI4OTciIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijg5NyIgY3k9IjMyMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iODk3IiBjeT0iMzMxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5MDciIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTA3IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjkwNyIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5MDciIGN5PSIyODMiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjkwNyIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTA3IiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5MDciIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjkwNyIgY3k9IjMyMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTA3IiBjeT0iMzMxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5MDciIGN5PSIzNDkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjkxNiIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5MTYiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTE2IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjkxNiIgY3k9IjI5MyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTE2IiBjeT0iMzAyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5MTYiIGN5PSIzMTIiIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjkxNiIgY3k9IjMyMSIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTE2IiBjeT0iMzMxIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5MjYiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTI2IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjkyNiIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5MjYiIGN5PSI2NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTI2IiBjeT0iMzEyIiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5MzUiIGN5PSIzOCIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTM1IiBjeT0iNDciIHI9IjEuNSIvPjxjaXJjbGUgY3g9IjkzNSIgY3k9IjU3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5MzUiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTM1IiBjeT0iODUiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijk0NCIgY3k9IjM4IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5NDQiIGN5PSI0NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTQ0IiBjeT0iNTciIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijk0NCIgY3k9IjY2IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5NDQiIGN5PSI3NiIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTU0IiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijk1NCIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5NTQiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTYzIiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijk2MyIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5NjMiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTYzIiBjeT0iMjc0IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5NjMiIGN5PSIzNTkiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijk3MyIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5NzMiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTgyIiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijk4MiIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5ODIiIGN5PSI1NyIgcj0iMS41Ii8+PGNpcmNsZSBjeD0iOTkyIiBjeT0iMzgiIHI9IjEuNSIvPjxjaXJjbGUgY3g9Ijk5MiIgY3k9IjQ3IiByPSIxLjUiLz48Y2lyY2xlIGN4PSI5OTIiIGN5PSI1NyIgcj0iMS41Ii8+PC9nPjwvc3ZnPg==')"></div>
+    <svg class="arcs" viewBox="0 0 1000 386" preserveAspectRatio="xMidYMid meet"><path class="arc" d="M 236 119 Q 381 13 525 92" pathLength="100" style="animation-delay:0.00s"/><path class="arc" d="M 525 92 Q 665 23 806 136" pathLength="100" style="animation-delay:0.55s"/><path class="arc" d="M 806 136 Q 847 161 889 308" pathLength="100" style="animation-delay:1.10s"/><path class="arc" d="M 236 119 Q 288 138 339 275" pathLength="100" style="animation-delay:1.65s"/><path class="arc" d="M 525 92 Q 542 114 558 222" pathLength="100" style="animation-delay:2.20s"/><path class="arc" d="M 639 158 Q 722 93 806 136" pathLength="100" style="animation-delay:2.75s"/><circle cx="236" cy="119" r="4" class="node"/><circle cx="339" cy="275" r="4" class="node"/><circle cx="525" cy="92" r="4" class="node"/><circle cx="558" cy="222" r="4" class="node"/><circle cx="639" cy="158" r="4" class="node"/><circle cx="806" cy="136" r="4" class="node"/><circle cx="889" cy="308" r="4" class="node"/><g class="conflicts"><circle class="cwave" cx="586" cy="94" style="animation-delay:0.00s"><title>Ukraine</title></circle><circle class="cdot" cx="586" cy="94" r="2.4"/><circle class="cwave" cx="596" cy="143" style="animation-delay:0.35s"><title>Gaza</title></circle><circle class="cdot" cx="596" cy="143" r="2.4"/><circle class="cwave" cx="583" cy="189" style="animation-delay:0.70s"><title>Sudan</title></circle><circle class="cdot" cx="583" cy="189" r="2.4"/><circle class="cwave" cx="500" cy="186" style="animation-delay:1.05s"><title>Sahel</title></circle><circle class="cdot" cx="500" cy="186" r="2.4"/><circle class="cwave" cx="575" cy="236" style="animation-delay:1.40s"><title>DR Congo</title></circle><circle class="cdot" cx="575" cy="236" r="2.4"/><circle class="cwave" cx="767" cy="172" style="animation-delay:1.75s"><title>Myanmar</title></circle><circle class="cdot" cx="767" cy="172" r="2.4"/><circle class="cwave" cx="606" cy="133" style="animation-delay:0.00s"><title>Syria</title></circle><circle class="cdot" cx="606" cy="133" r="2.4"/><circle class="cwave" cx="625" cy="189" style="animation-delay:0.35s"><title>Yemen</title></circle><circle class="cdot" cx="625" cy="189" r="2.4"/><circle class="cwave" cx="300" cy="178" style="animation-delay:0.70s"><title>Haiti</title></circle><circle class="cdot" cx="300" cy="178" r="2.4"/><circle class="cwave" cx="608" cy="206" style="animation-delay:1.05s"><title>Ethiopia</title></circle><circle class="cdot" cx="608" cy="206" r="2.4"/><circle class="cwave" cx="628" cy="217" style="animation-delay:1.40s"><title>Somalia</title></circle><circle class="cdot" cx="628" cy="217" r="2.4"/><circle class="cwave" cx="683" cy="136" style="animation-delay:1.75s"><title>Afghanistan</title></circle><circle class="cdot" cx="683" cy="136" r="2.4"/></g></svg>
+    <div class="wm-cap">Wherever you are in the world, your documents stay safe - and <b>no one can corrupt them.</b></div>
+    <div class="wm-stats">
+      <div class="ws"><div class="wsv">30+</div><div class="wsk">active conflict zones right now</div></div>
+      <div class="ws"><div class="wsv">110M+</div><div class="wsk">people forcibly displaced</div></div>
+      <div class="ws"><div class="wsv">~68%</div><div class="wsk">of adults have no will prepared</div></div>
+    </div>
+  </div>
+</section>
 
 <div class="tabswrap">
   <div class="tabs">
     <button data-tab="notarize" class="active">Protect</button>
     <button data-tab="owner">Inherit</button>
     <button data-tab="heir">Claim</button>
+    <button data-tab="life">Proof of Life</button>
   </div>
 </div>
 
@@ -125,8 +285,18 @@
   <div class="sechead">
     <div class="eyebrow">Protect</div>
     <h2>Prove it existed. Prove it's unchanged.</h2>
-    <p>A permanent on-chain fingerprint of any document — impossible to forge or alter without anyone noticing.</p>
+    <p>A permanent on-chain fingerprint of any document - impossible to forge or alter without anyone noticing.</p>
   </div>
+    <div class="example">
+      <div class="exflow">
+        <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h5"/></svg></span>Your document</span>
+        <span class="exar">→</span>
+        <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.4 3 7.9 7 9.6 4-1.7 7-5.2 7-9.6V6Z"/><path d="m9 12 2 2 4-4"/></svg></span>Fingerprint on-chain</span>
+        <span class="exar">→</span>
+        <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.3 12 2.5 2.5 4.9-5.2"/></svg></span>Provably the real one</span>
+      </div>
+      <div class="excap"><b>Example:</b> upload your will. We stamp a unique fingerprint of it onto Monad. Later anyone can prove your file is the exact, unaltered original - and spot a fake instantly.</div>
+    </div>
 
   <div class="card">
     <h3>Notarize a document</h3>
@@ -144,7 +314,7 @@
 
   <div class="card">
     <h3>Verify a document</h3>
-    <p class="desc">Upload any file to check whether its fingerprint is on record — and exactly who registered it, and when.</p>
+    <p class="desc">Upload any file to check whether its fingerprint is on record - and exactly who registered it, and when.</p>
     <div class="row"><div><label>Choose file to verify</label><input type="file" id="verFile" /></div></div>
     <div class="actions"><button class="ghost" id="verifyBtn">Verify</button></div>
     <div id="verResult"></div>
@@ -156,8 +326,20 @@
   <div class="sechead">
     <div class="eyebrow">Inherit</div>
     <h2>A dead-man's switch for your estate.</h2>
-    <p>Add encrypted documents and name your heirs. If you stop checking in, access is released to them — automatically.</p>
+    <p>Add encrypted documents and name your heirs. If you stop checking in, access is released to them - automatically.</p>
   </div>
+    <div class="example">
+      <div class="exflow">
+        <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="4" rx="1"/><path d="M5.5 8v10a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8"/><path d="M10 12h4"/></svg></span>You store &amp; encrypt</span>
+        <span class="exar">→</span>
+        <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><path d="M19 14c1.5-1.46 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.04 3 5.5l7 7Z"/></svg></span>You check in</span>
+        <span class="exar">→</span>
+        <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.3 2"/></svg></span>You go silent</span>
+        <span class="exar">→</span>
+        <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.3 12.7 20 3"/><path d="M16 5l3 3"/><path d="M18 7l2.5 2.5"/></svg></span>Heirs get access</span>
+      </div>
+      <div class="excap"><b>Example:</b> you check in every month. If you ever stop - say, you pass away - then after the time you set, your children automatically receive the key to your documents. A "dead man's switch."</div>
+    </div>
 
   <div class="card">
     <h3 class="with-step"><span class="step">1</span>Create your vault</h3>
@@ -168,9 +350,9 @@
     </div>
     <div id="vaultStatus" style="margin-top:16px"></div>
     <div class="actions" id="vaultControls" style="display:none">
-      <button id="checkInBtn">✅ Check in (I'm alive)</button>
+      <button id="checkInBtn"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.3 12 2.5 2.5 4.9-5.2"/></svg> Check in (I'm alive)</button>
       <button class="danger" id="releaseNowBtn">Release now</button>
-      <button class="ghost small" id="refreshOwnerBtn">↻ Refresh</button>
+      <button class="ghost small" id="refreshOwnerBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 4v5h-5"/></svg> Refresh</button>
     </div>
   </div>
 
@@ -200,11 +382,37 @@
 
   <div class="card">
     <h3 class="with-step"><span class="step">4</span>Name an heir</h3>
-    <p class="desc">Enter your heir's wallet address and the public key they generated in the Claim tab. Your master key is wrapped (ECDH) so only they can unwrap it — and only after release.</p>
+    <p class="desc">Enter your heir's wallet address and the public key they generated in the Claim tab. Your master key is wrapped (ECDH) so only they can unwrap it - and only after release.</p>
     <div class="row"><div><label>Heir wallet address</label><input id="heirAddr" placeholder="0x…" /></div></div>
     <div class="row"><div><label>Heir public key (from their Claim tab)</label><input id="heirPub" placeholder="base64 public key" /></div></div>
     <div class="actions"><button id="addHeirBtn">Wrap key &amp; add heir</button></div>
     <div id="heirList"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="with-step"><span class="step"><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 20a5.4 5.4 0 0 1 10.8 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6"/><path d="M17.5 14.2A5.4 5.4 0 0 1 20.6 20"/></svg></span>Contacts &amp; receivers</h3>
+    <p class="desc">Save people by email or phone, then choose who receives your documents. Contacts are private to your browser - never stored on-chain.</p>
+    <div class="row"><div><label>Name</label><input id="ctName" placeholder="e.g. Sarah (daughter)" /></div></div>
+    <div class="row">
+      <div><label>Email</label><input id="ctEmail" type="email" placeholder="sarah@email.com" /></div>
+      <div><label>Phone</label><input id="ctPhone" placeholder="+1 555 123 4567" /></div>
+    </div>
+    <div class="row">
+      <div><label>Wallet address (optional)</label><input id="ctWallet" placeholder="0x… needed to actually decrypt" /></div>
+      <div><label>Heir public key (optional)</label><input id="ctPub" placeholder="from their Claim tab" /></div>
+    </div>
+    <div class="actions"><button id="addContactBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add contact</button></div>
+    <div id="contactsList"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="with-step"><span class="step"><svg class="ic" viewBox="0 0 24 24"><ellipse cx="8.5" cy="6" rx="5.5" ry="2.6"/><path d="M3 6v4.5c0 1.5 2.5 2.6 5.5 2.6s5.5-1.1 5.5-2.6V6"/><path d="M14 12.2V16c0 1.5-2.5 2.6-5.5 2.6S3 17.5 3 16v-2.4"/><ellipse cx="15.5" cy="13" rx="5.5" ry="2.6"/><path d="M21 13v3.4c0 1.5-2.5 2.6-5.5 2.6-1.2 0-2.3-.18-3.2-.5"/></svg></span>Endowment &amp; $LEGACY</h3>
+    <p class="desc">Deposit MON into your vault. It stays yours (withdraw anytime before release), earns projected yield while it sits, and is paid to your heirs as a <b>life-insurance payout</b> when the vault releases. Every deposit also mints <b>$LEGACY</b>, the ecosystem's economic unit. <span style="color:var(--muted)">Testnet prototype - yield is illustrative.</span></p>
+    <div class="row">
+      <div><label>Deposit amount (MON)</label><input id="depAmt" type="number" step="0.01" placeholder="0.1" /></div>
+      <div style="flex:0 0 auto;display:flex;align-items:flex-end;gap:8px"><button id="depositBtn">Deposit</button><button class="ghost" id="withdrawEndBtn">Withdraw</button></div>
+    </div>
+    <div id="endowStatus" style="margin-top:14px"></div>
   </div>
 </section>
 
@@ -213,13 +421,23 @@
   <div class="sechead">
     <div class="eyebrow">Claim</div>
     <h2>Inherit what was left to you.</h2>
-    <p>Generate your key, watch for release, then decrypt everything — all in your browser, no one else can.</p>
+    <p>Generate your key, watch for release, then decrypt everything - all in your browser, no one else can.</p>
   </div>
+    <div class="example">
+      <div class="exflow">
+        <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>Your heir</span>
+        <span class="exar">→</span>
+        <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.3 12.7 20 3"/><path d="M16 5l3 3"/><path d="M18 7l2.5 2.5"/></svg></span>Their private key</span>
+        <span class="exar">→</span>
+        <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><path d="M3.5 13H8l1.5 2.5h5L16 13h4.5"/><path d="m4.5 13 1.8-6.5A2 2 0 0 1 8.2 5h7.6a2 2 0 0 1 1.9 1.5L19.5 13v5a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2Z"/></svg></span>Unlocks your documents</span>
+      </div>
+      <div class="excap"><b>Example:</b> the person you named opens this page, proves it's them with their key, and downloads exactly what you left them - but only after your vault has released. No one else ever can.</div>
+    </div>
 
   <div class="card">
     <h3 class="with-step"><span class="step">1</span>Generate your heir key</h3>
-    <p class="desc">Creates an ECDH keypair in your browser. Share the public key with the vault owner. Save your private key — it's the only way to unlock your inheritance.</p>
-    <div class="actions"><button id="genHeirBtn">Generate keypair</button><button class="ghost" id="dlHeirBtn" disabled>⬇ Download private key</button></div>
+    <p class="desc">Creates an ECDH keypair in your browser. Share the public key with the vault owner. Save your private key - it's the only way to unlock your inheritance.</p>
+    <div class="actions"><button id="genHeirBtn">Generate keypair</button><button class="ghost" id="dlHeirBtn" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M12 3.5v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M5 20.5h14"/></svg> Download private key</button></div>
     <label>Your public key (give this to the owner)</label>
     <input id="heirPubOut" readonly placeholder="generate to see" />
     <label>Your private key (keep secret!)</label>
@@ -241,12 +459,97 @@
 
   <div class="card">
     <h3 class="with-step"><span class="step">3</span>Claim &amp; recover documents</h3>
-    <p class="desc">Once released, claim your inheritance. Your private key unwraps the owner's master key and decrypts every document — all locally.</p>
+    <p class="desc">Once released, claim your inheritance. Your private key unwraps the owner's master key and decrypts every document - all locally.</p>
     <div class="actions">
       <button id="claimBtn" disabled>Claim inheritance</button>
-      <button class="ghost" id="recoverBtn" disabled>🔓 Decrypt my documents</button>
+      <button class="ghost" id="recoverBtn" disabled><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="11" width="17" height="10" rx="2"/><path d="M7.5 11V7.5a4.5 4.5 0 0 1 8.7-1.6"/></svg> Decrypt my documents</button>
     </div>
     <div id="heirDocs"></div>
+  </div>
+</section>
+
+<section id="tab-profile" class="section hidden">
+  <div class="sechead">
+    <div class="eyebrow">Profile</div>
+    <h2>Your account &amp; activity.</h2>
+    <p>Everything you've done on WillVault, pulled live from the chain.</p>
+  </div>
+  <div class="card">
+    <div class="prof">
+      <div class="prof-av" id="profAv">?</div>
+      <div class="prof-meta">
+        <div class="prof-addr" id="profAddr">Not connected</div>
+        <div class="prof-sub mono" id="profSub">Connect your wallet to see your profile.</div>
+      </div>
+      <button class="ghost small" id="profRefresh"><svg class="ic" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 4v5h-5"/></svg> Refresh</button>
+    </div>
+    <div class="stats" id="profStats"></div>
+  </div>
+  <div class="card">
+    <h3>History</h3>
+    <p class="desc">Your on-chain activity - notarizations, check-ins, documents, heirs, and claims.</p>
+    <div id="historyList"><span class="tag">Connect your wallet to load history.</span></div>
+  </div>
+</section>
+
+<section id="tab-life" class="section hidden">
+  <div class="sechead">
+    <div class="eyebrow">Proof of Life</div>
+    <h2>Your life keeps your vault sealed.</h2>
+    <p>No check-in button to remember. As long as you're active on any of your networks, your documents stay locked. Go silent everywhere, and your heirs inherit.</p>
+  </div>
+  <div class="example">
+    <div class="exflow">
+      <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 2.6 15.3 0 18M12 3c-2.6 2.7-2.6 15.3 0 18"/></svg></span>Your networks</span>
+      <span class="exar">→</span>
+      <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12h4l2.5-7 4 14 2.5-7H21"/></svg></span>Any activity = you're here</span>
+      <span class="exar">→</span>
+      <span class="exstep"><span class="exi"><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="11" width="17" height="10" rx="2"/><path d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11"/></svg></span>Vault stays sealed</span>
+    </div>
+    <div class="excap"><b>Example:</b> a post on X, a commit on GitHub, a story on Instagram - any of it quietly tells your vault you're still here and resets the timer. Only total silence across every network, for the time you set, releases your documents.</div>
+  </div>
+
+  <div class="card">
+    <h3 class="with-step"><span class="step"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12h4l2.5-7 4 14 2.5-7H21"/></svg></span>Connect your networks</h3>
+    <p class="desc">Add the accounts you actually use. We read your latest public activity - <b>GitHub is live &amp; real</b>; the others are shown as a demo signal (a production version uses an oracle). Handles stay private in your browser.</p>
+    <div class="row">
+      <div><label>Network</label>
+        <select id="plNet"><option value="github">GitHub</option><option value="x">X (Twitter)</option><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="linkedin">LinkedIn</option><option value="youtube">YouTube</option></select>
+      </div>
+      <div><label>Handle / username</label><input id="plHandle" placeholder="e.g. octocat" /></div>
+      <div style="flex:0 0 auto;display:flex;align-items:flex-end"><button id="addNetworkBtn">Add</button></div>
+    </div>
+    <div id="networksList"></div>
+  </div>
+
+  <div class="card">
+    <h3>Liveness status</h3>
+    <p class="desc">Your most recent activity across all connected networks. While this stays within your vault's window, you're considered present and the vault stays sealed.</p>
+    <div id="lifeStatus"><span class="tag">Add a network to see your status.</span></div>
+    <div class="actions">
+      <button class="ghost" id="refreshLifeBtn">Re-check activity</button>
+      <button id="lifeCheckInBtn">Sync proof-of-life to chain</button>
+    </div>
+  </div>
+</section>
+
+<section id="tab-earn" class="section hidden">
+  <div class="sechead">
+    <div class="eyebrow">Get Monetized</div>
+    <h2>Turn your posting into on-chain rewards.</h2>
+    <p>Share a story on any of your networks, log it here, and the chain records your activity - you earn 10 $LEGACY per post, and it keeps your vault sealed at the same time.</p>
+  </div>
+  <div class="card">
+    <h3 class="with-step"><span class="step"><svg class="ic" viewBox="0 0 24 24"><ellipse cx="8.5" cy="6" rx="5.5" ry="2.6"/><path d="M3 6v4.5c0 1.5 2.5 2.6 5.5 2.6s5.5-1.1 5.5-2.6V6"/><path d="M14 12.2V16c0 1.5-2.5 2.6-5.5 2.6S3 17.5 3 16v-2.4"/><ellipse cx="15.5" cy="13" rx="5.5" ry="2.6"/><path d="M21 13v3.4c0 1.5-2.5 2.6-5.5 2.6-1.2 0-2.3-.18-3.2-.5"/></svg></span>Post &amp; earn</h3>
+    <p class="desc">Every post is proof of life the chain can see. Logging one runs an on-chain check-in that mints you <b>10 $LEGACY</b> and resets your dead-man's switch - so staying active online literally pays. <span style="color:var(--muted)">Prototype: production verifies each post via an oracle and rate-limits rewards. Needs a vault.</span></p>
+    <div class="row">
+      <div><label>Network</label>
+        <select id="earnNet"><option value="x">X (Twitter)</option><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="github">GitHub</option><option value="linkedin">LinkedIn</option><option value="youtube">YouTube</option></select>
+      </div>
+      <div><label>Link to your post (optional)</label><input id="earnUrl" placeholder="https://…" /></div>
+      <div style="flex:0 0 auto;display:flex;align-items:flex-end"><button id="earnPostBtn">Post &amp; earn 10 $LEGACY</button></div>
+    </div>
+    <div id="earnStats" style="margin-top:16px"></div>
   </div>
 </section>
 
@@ -282,13 +585,39 @@ const ABI = [
   "function getDocuments(address owner) view returns (tuple(bytes32 documentHash,string title,string category,string encryptedURI,uint64 addedAt)[])",
   "function getHeirs(address owner) view returns (address[])",
   "function getMyKeyMaterial(address owner) view returns (string wrappedKey, string ephemeralPubKey)",
-  "function isHeir(address owner, address heir) view returns (bool)"
+  "function isHeir(address owner, address heir) view returns (bool)",
+  "function deposit() payable",
+  "function withdrawEndowment()",
+  "function endowment(address) view returns (uint256)",
+  "function getEndowment(address owner) view returns (uint256 principal, uint64 since, uint256 projectedValue)",
+  "function legacyBalance(address) view returns (uint256)",
+  "function totalValueLocked() view returns (uint256)",
+  "function ecosystem() view returns (uint256 tvl, uint256 legacyMinted, uint256 numParticipants)",
+  "event DocumentNotarized(bytes32 indexed documentHash, address indexed author, string title, string category, uint64 timestamp)",
+  "event VaultCreated(address indexed owner, uint64 checkInInterval)",
+  "event CheckedIn(address indexed owner, uint64 timestamp, uint64 nextDeadline)",
+  "event DocumentAdded(address indexed owner, bytes32 indexed documentHash, string title)",
+  "event HeirAdded(address indexed owner, address indexed heir)",
+  "event ManuallyReleased(address indexed owner, uint64 timestamp)",
+  "event VaultClaimed(address indexed owner, address indexed heir, uint64 timestamp)"
 ];
 
 /* ---------- State ---------- */
 let provider, signer, account, contract;
 let masterKey = null;        // owner's AES master key
 let heirPriv = null;         // heir's imported private key (CryptoKey)
+const IC = {
+  notarize: '<svg class="ic" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/><path d="m9 15 2 2 4-4"/></svg>',
+  create: '<svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="4" rx="1"/><path d="M5.5 8v10a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V8"/><path d="M10 12h4"/></svg>',
+  checkin: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.3 12 2.5 2.5 4.9-5.2"/></svg>',
+  adddoc: '<svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="11" width="17" height="10" rx="2"/><path d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11"/></svg>',
+  heir: '<svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.6 20a5.4 5.4 0 0 1 10.8 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6"/><path d="M17.5 14.2A5.4 5.4 0 0 1 20.6 20"/></svg>',
+  release: '<svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="11" width="17" height="10" rx="2"/><path d="M7.5 11V7.5a4.5 4.5 0 0 1 8.7-1.6"/></svg>',
+  claimed: '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="9.5" rx="1"/><path d="M3.5 10.5h17M12 10.5V20"/><path d="M12 10.5S10.7 6 8.4 6.2A2 2 0 0 0 8 10.2ZM12 10.5S13.3 6 15.6 6.2A2 2 0 0 1 16 10.2Z"/></svg>',
+  ownerclaimed: '<svg class="ic" viewBox="0 0 24 24"><path d="M3.5 13H8l1.5 2.5h5L16 13h4.5"/><path d="m4.5 13 1.8-6.5A2 2 0 0 1 8.2 5h7.6a2 2 0 0 1 1.9 1.5L19.5 13v5a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2Z"/></svg>',
+  download: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3.5v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M5 20.5h14"/></svg>',
+  mail: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m3.8 7 8.2 5.6L20.2 7"/></svg>'
+};
 
 /* ---------- Helpers ---------- */
 const $ = (id) => document.getElementById(id);
@@ -357,7 +686,7 @@ $("connectBtn").onclick = async () => {
   $("netPill").innerHTML = `<span class="dot" style="background:${onMonad?'var(--good)':'var(--warn)'}"></span> ${short(account)} · ${onMonad?'Monad':'Chain '+net.chainId}`;
   $("connectBtn").textContent = "Connected";
   log(`Connected ${short(account)} on chain ${net.chainId}`,"ok");
-  if(!onMonad) log("You're not on Monad Testnet — click “Add Monad Testnet”.","err");
+  if(!onMonad) log("You're not on Monad Testnet - click “Add Monad Testnet”.","err");
   window.ethereum.on?.("accountsChanged", ()=>location.reload());
   window.ethereum.on?.("chainChanged", ()=>location.reload());
 };
@@ -378,7 +707,7 @@ document.querySelectorAll(".tabs button").forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
     b.classList.add("active");
-    ["notarize","owner","heir"].forEach(t=>$("tab-"+t).classList.add("hidden"));
+    ["notarize","owner","heir","profile","life","earn"].forEach(t=>$("tab-"+t).classList.add("hidden"));
     $("tab-"+b.dataset.tab).classList.remove("hidden");
   };
 });
@@ -395,7 +724,7 @@ $("notarizeBtn").onclick = async () => {
     const c = getContract(true);
     log("Sending notarize tx…");
     const tx = await c.notarize(h, $("notTitle").value||"Untitled", $("notCat").value);
-    log("tx "+short(tx.hash)+" — waiting…");
+    log("tx "+short(tx.hash)+" - waiting…");
     await tx.wait();
     log("Notarized on-chain! "+`<a target=_blank href="${MONAD.explorer}/tx/${tx.hash}">view</a>`,"ok");
   }catch(e){ log(cleanErr(e),"err"); }
@@ -407,7 +736,7 @@ $("verifyBtn").onclick = async () => {
     const [exists,author,ts,title,cat] = await c.verify(h);
     if(!exists){ $("verResult").innerHTML = `<div class="item" style="border-color:#f2b8bd"><b style="color:var(--bad)">✗ Not on record.</b><br><span class="mono">${h}</span></div>`; return; }
     const d = new Date(Number(ts)*1000).toLocaleString();
-    $("verResult").innerHTML = `<div class="item" style="border-color:#a7dcb6"><b style="color:var(--good)">✓ Verified — unaltered &amp; on record.</b><br>
+    $("verResult").innerHTML = `<div class="item" style="border-color:#a7dcb6"><b style="color:var(--good)">✓ Verified - unaltered &amp; on record.</b><br>
       <div style="margin-top:6px">${title} · <span class="tag">${cat}</span></div>
       <div class="mono">by ${author}<br>at ${d}</div></div>`;
     log("Verified document by "+short(author),"ok");
@@ -424,7 +753,7 @@ $("createVaultBtn").onclick = async () => {
     log("Vault created.","ok"); refreshOwner();
   }catch(e){ log(cleanErr(e),"err"); }
 };
-$("checkInBtn").onclick = async () => txnThen(c=>c.checkIn(),"Checked in — timer reset.");
+$("checkInBtn").onclick = async () => txnThen(c=>c.checkIn(),"Checked in - timer reset.");
 $("releaseNowBtn").onclick = async () => txnThen(c=>c.releaseNow(),"Vault released to heirs.");
 $("refreshOwnerBtn").onclick = refreshOwner;
 async function txnThen(fn,msg){
@@ -435,7 +764,7 @@ $("setPassBtn").onclick = async () => {
   const p = $("passphrase").value;
   if(!p){ log("Enter a passphrase.","err"); return; }
   masterKey = await deriveMasterKey(p);
-  $("passState").textContent = "🔑 Master key derived and held in memory for this session.";
+  $("passState").textContent = "Master key derived and held in memory for this session.";
   log("Encryption key derived.","ok");
 };
 $("addDocBtn").onclick = async () => {
@@ -444,7 +773,7 @@ $("addDocBtn").onclick = async () => {
     const bytes = await fileBytes($("docFile"));
     const h = hashBytes(bytes);
     const uri = await encryptDoc(masterKey, bytes);
-    if(uri.length > 40000) log("Note: large file — on-chain storage may be costly; production uses IPFS.","");
+    if(uri.length > 40000) log("Note: large file - on-chain storage may be costly; production uses IPFS.","");
     const c = getContract(true);
     log("Encrypting &amp; storing document…");
     const tx = await c.addDocument(h, $("docTitle").value||"Untitled", $("docCat").value, uri);
@@ -476,7 +805,7 @@ async function refreshOwner(){
     const released = info.released;
     const color = released?'var(--bad)':(rem<15?'var(--warn)':'var(--good)');
     $("vaultStatus").innerHTML = `<div class="status-big"><span class="dot" style="background:${color}"></span>
-      ${released?'RELEASED — heirs can now claim.':'Active · releases in <b>'+rem+'s</b> if you do not check in'}</div>
+      ${released?'RELEASED - heirs can now claim.':'Active · releases in <b>'+rem+'s</b> if you do not check in'}</div>
       <div class="mono" style="margin-top:6px">interval ${info.checkInInterval}s · ${info.docCount} document(s) · ${info.heirCount} heir(s)</div>`;
     // documents
     const docs = await c.getDocuments(account);
@@ -485,6 +814,7 @@ async function refreshOwner(){
     // heirs
     const heirs = await c.getHeirs(account);
     $("heirList").innerHTML = heirs.map(a=>`<div class="item"><span class="mono">${a}</span></div>`).join("");
+    if(typeof refreshEndow==="function") refreshEndow();
   }catch(e){ log(cleanErr(e),"err"); }
 }
 
@@ -520,7 +850,7 @@ $("checkVaultBtn").onclick = async () => {
     const released = await c.isReleased(owner);
     const rem = Number(await c.timeRemaining(owner));
     $("heirVaultStatus").innerHTML = `<div class="status-big"><span class="dot" style="background:${released?'var(--good)':'var(--warn)'}"></span>
-      ${released?'RELEASED — you may claim.':'Still active · releases in '+rem+'s'}</div>
+      ${released?'RELEASED - you may claim.':'Still active · releases in '+rem+'s'}</div>
       <div class="mono" style="margin-top:6px">You are ${isHeir?'a named heir ✓':'NOT a named heir ✗'} of ${short(owner)}</div>`;
     $("claimBtn").disabled = !(released && isHeir);
     $("recoverBtn").disabled = !(released && isHeir);
@@ -550,7 +880,7 @@ $("recoverBtn").onclick = async () => {
         const plain = await decryptDoc(master, d.encryptedURI);
         const url = URL.createObjectURL(new Blob([plain]));
         html += `<div class="item"><div class="t">${d.title} <span class="tag">${d.category}</span></div>
-          <a download="${d.title.replace(/[^\w.-]/g,'_')}" href="${url}">⬇ Download decrypted file</a></div>`;
+          <a download="${d.title.replace(/[^\w.-]/g,'_')}" href="${url}">${IC.download} Download decrypted file</a></div>`;
       }catch(err){
         html += `<div class="item" style="border-color:#f2b8bd"><div class="t">${d.title}</div><span class="mono" style="color:var(--bad)">Could not decrypt.</span></div>`;
       }
@@ -559,6 +889,313 @@ $("recoverBtn").onclick = async () => {
     log("Documents decrypted in your browser.","ok");
   }catch(e){ log(cleanErr(e),"err"); }
 };
+
+/* ---------- Profile & History ---------- */
+function avatarStyle(addr){
+  let h=0; for(let i=2;i<addr.length;i++){ h=(h*31+addr.charCodeAt(i))>>>0; }
+  return `linear-gradient(135deg,hsl(${h%360},68%,58%),hsl(${(h*7)%360},68%,52%))`;
+}
+$("navProfile").onclick = ()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
+  ["notarize","owner","heir","profile","life","earn"].forEach(t=>$("tab-"+t).classList.add("hidden"));
+  $("tab-profile").classList.remove("hidden");
+  $("tab-profile").scrollIntoView({behavior:"smooth",block:"start"});
+  if(account) refreshProfile();
+};
+$("profRefresh").onclick = ()=>{ if(account) refreshProfile(); else log("Connect your wallet first.","err"); };
+
+async function refreshProfile(){
+  if(!account){ return; }
+  try{
+    $("profAv").style.background = avatarStyle(account);
+    $("profAv").textContent = account.slice(2,4).toUpperCase();
+    $("profAddr").textContent = short(account);
+    $("profSub").textContent = account;
+    const net = await provider.getNetwork();
+    const bal = await provider.getBalance(account);
+    const onMonad = Number(net.chainId) === MONAD.chainId;
+    let v = {exists:false};
+    try{ v = await getContract(false).getVaultInfo(account); }catch(_){}
+    const stats = [
+      ["Balance", Number(ethers.formatEther(bal)).toFixed(3)+" MON"],
+      ["Network", onMonad?"Monad":("Chain "+net.chainId)],
+      ["Vault", v.exists?(v.released?"Released":"Active"):"None"],
+      ["Documents", v.exists?String(v.docCount):"0"],
+      ["Heirs", v.exists?String(v.heirCount):"0"],
+    ];
+    let legacy=0n, eco=[0n,0n,0n];
+    try{ const cc=getContract(false); legacy=await cc.legacyBalance(account); eco=await cc.ecosystem(); }catch(_){}
+    stats.push(["$LEGACY earned", legacy.toString()]);
+    stats.push(["Protocol TVL", Number(ethers.formatEther(eco[0])).toFixed(3)+" MON"]);
+    stats.push(["$LEGACY supply", eco[1].toString()]);
+    stats.push(["Participants", eco[2].toString()]);
+    $("profStats").innerHTML = stats.map(s=>`<div class="stat"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join("");
+    loadHistory();
+  }catch(e){ log(cleanErr(e),"err"); }
+}
+
+async function getLogsSafe(c, filter, latest){
+  const span=80000, chunk=10000;
+  const start=Math.max(0, latest-span);
+  try{ return await c.queryFilter(filter, start, latest); }catch(_){}
+  let all=[];
+  for(let f=start; f<=latest; f+=chunk){
+    const t=Math.min(latest, f+chunk-1);
+    try{ all=all.concat(await c.queryFilter(filter, f, t)); }catch(_){}
+  }
+  return all;
+}
+
+async function loadHistory(){
+  const el=$("historyList"); el.innerHTML="<span class='tag'>Loading history\u2026</span>";
+  try{
+    const c=getContract(false);
+    const latest=await provider.getBlockNumber();
+    const raw=[];
+    const push=(logs,kind)=>{ for(const l of logs) raw.push({l,kind}); };
+    push(await getLogsSafe(c, c.filters.DocumentNotarized(null, account), latest), "notarize");
+    push(await getLogsSafe(c, c.filters.VaultCreated(account), latest), "create");
+    push(await getLogsSafe(c, c.filters.CheckedIn(account), latest), "checkin");
+    push(await getLogsSafe(c, c.filters.DocumentAdded(account), latest), "adddoc");
+    push(await getLogsSafe(c, c.filters.HeirAdded(account), latest), "heir");
+    push(await getLogsSafe(c, c.filters.ManuallyReleased(account), latest), "release");
+    push(await getLogsSafe(c, c.filters.VaultClaimed(null, account), latest), "claimed");
+    push(await getLogsSafe(c, c.filters.VaultClaimed(account), latest), "ownerclaimed");
+    const prio={ownerclaimed:9,claimed:8,release:7,heir:6,adddoc:5,create:4,checkin:3,notarize:1};
+    const byTx={};
+    for(const r of raw){ const tx=r.l.transactionHash; if(!byTx[tx]||prio[r.kind]>prio[byTx[tx].kind]) byTx[tx]=r; }
+    const blk={};
+    async function blkTime(bn){ if(blk[bn]!=null) return blk[bn]; try{ const b=await provider.getBlock(bn); blk[bn]=Number(b.timestamp); }catch(_){ blk[bn]=0; } return blk[bn]; }
+    const out=[];
+    for(const r of Object.values(byTx)){
+      const a=r.l.args; let t=0;
+      if(a && a.timestamp!=null) t=Number(a.timestamp); else t=await blkTime(r.l.blockNumber);
+      let icon="\u2022", title="", sub="";
+      if(r.kind==="notarize"){ icon="\ud83d\udcdc"; title='Notarized "'+a.title+'"'; sub=a.category; }
+      else if(r.kind==="create"){ icon="\ud83d\uddc4\ufe0f"; title="Created vault"; sub="check-in interval "+a.checkInInterval+"s"; }
+      else if(r.kind==="checkin"){ icon="\u2705"; title="Checked in"; sub="proof of life"; }
+      else if(r.kind==="adddoc"){ icon="\ud83d\udd10"; title='Added document "'+a.title+'"'; sub="encrypted & stored"; }
+      else if(r.kind==="heir"){ icon="\ud83d\udc6a"; title="Named an heir"; sub=short(a.heir); }
+      else if(r.kind==="release"){ icon="\ud83d\udd13"; title="Released vault early"; sub="heirs can now claim"; }
+      else if(r.kind==="claimed"){ icon="\ud83c\udf89"; title="Claimed an inheritance"; sub="from "+short(a.owner); }
+      else if(r.kind==="ownerclaimed"){ icon="\ud83d\udce5"; title="Your vault was claimed"; sub="by "+short(a.heir); }
+      out.push({t, block:Number(r.l.blockNumber), kind:r.kind, icon, title, sub, tx:r.l.transactionHash});
+    }
+    out.sort((x,y)=> y.block - x.block);
+    if(out.length===0){ el.innerHTML="<span class='tag'>No activity yet - notarize a document or create a vault to get started.</span>"; return; }
+    el.innerHTML=out.map(o=>`<div class="hitem"><div class="hicon">${IC[o.kind]||""}</div>`+
+      `<div class="hbody"><div class="htitle">${o.title}</div><div class="hsub">${o.sub} \u00b7 <a target=_blank href="${MONAD.explorer}/tx/${o.tx}">tx</a></div></div>`+
+      `<div class="htime">${o.t?new Date(o.t*1000).toLocaleString():""}</div></div>`).join("");
+  }catch(e){ el.innerHTML="<span class='tag'>Could not load history.</span>"; log(cleanErr(e),"err"); }
+}
+
+/* ---------- Cursor glow ---------- */
+(function(){ let mx=0,my=0,raf=0;
+  window.addEventListener("mousemove",e=>{ mx=e.clientX; my=e.clientY;
+    if(!raf) raf=requestAnimationFrame(()=>{ const s=document.documentElement.style; s.setProperty("--mx",mx+"px"); s.setProperty("--my",my+"px"); raf=0; }); },{passive:true});
+})();
+/* ---------- Contacts & receivers ---------- */
+let contacts=[];
+const CT_KEY="willvault_contacts";
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+function nameColor(s){ let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return `linear-gradient(135deg,hsl(${h%360},64%,57%),hsl(${(h*7)%360},64%,51%))`; }
+function initials(s){ const p=String(s).trim().split(/\s+/).map(w=>w[0]).filter(Boolean); return ((p[0]||"?")+(p[1]||"")).toUpperCase(); }
+function loadContacts(){ try{ contacts=JSON.parse(localStorage.getItem(CT_KEY)||"[]"); }catch(_){ contacts=[]; } renderContacts(); }
+function saveContacts(){ try{ localStorage.setItem(CT_KEY, JSON.stringify(contacts)); }catch(_){} renderContacts(); }
+function renderContacts(){
+  const el=$("contactsList"); if(!el) return;
+  if(!contacts.length){ el.innerHTML="<span class='tag' style='margin-top:12px;display:inline-block'>No contacts yet.</span>"; return; }
+  el.innerHTML=contacts.map(c=>{
+    const method=[c.email,c.phone].filter(Boolean).map(esc).join(" \u00b7 ");
+    const badges=(c.receiver?'<span class="badge rx">\u2713 Receiver</span>':'')+(c.onchain?'<span class="badge on">On-chain heir</span>':'')||'<span class="tag">not a receiver yet</span>';
+    return `<div class="contact"><div class="cav" style="background:${nameColor(c.name)}">${initials(c.name)}</div>`+
+      `<div class="cbody"><div class="cname">${esc(c.name)}</div>`+
+      `<div class="cmeta">${method}${c.wallet?" \u00b7 "+short(c.wallet):""}</div>`+
+      `<div class="cbadges">${badges}</div>`+
+      `<div class="cact">`+
+        `<button class="small" onclick="_makeReceiver('${c.id}')">${c.receiver?"\u2713 Receiver":"Make receiver of my papers"}</button>`+
+        `<button class="ghost small" onclick="_inviteContact('${c.id}')">\u2709 Invite</button>`+
+        `<button class="danger small" onclick="_removeContact('${c.id}')">Remove</button>`+
+      `</div></div></div>`;
+  }).join("");
+}
+$("addContactBtn").onclick=()=>{
+  const name=$("ctName").value.trim(); if(!name){ log("Enter a contact name.","err"); return; }
+  const email=$("ctEmail").value.trim(), phone=$("ctPhone").value.trim();
+  if(!email && !phone){ log("Add an email or phone for this contact.","err"); return; }
+  const wallet=$("ctWallet").value.trim(), pub=$("ctPub").value.trim();
+  if(wallet && !ethers.isAddress(wallet)){ log("That wallet address isn't valid.","err"); return; }
+  contacts.push({id:"c"+Date.now()+Math.floor(Math.random()*100000), name, email, phone, wallet, pub, receiver:false, onchain:false});
+  ["ctName","ctEmail","ctPhone","ctWallet","ctPub"].forEach(i=>$(i).value="");
+  saveContacts(); log("Contact \""+name+"\" saved.","ok");
+};
+window._removeContact=(id)=>{ contacts=contacts.filter(c=>c.id!==id); saveContacts(); };
+window._inviteContact=(id)=>{
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  const appUrl=location.origin+location.pathname;
+  const subject="You've been named to receive my documents on WillVault";
+  const body="Hi "+c.name+",\n\nI've named you to receive my important documents on WillVault - a tamper-proof digital vault on the blockchain.\n\nTo accept:\n1. Open "+appUrl+"\n2. Go to the \"Claim\" tab and click \"Generate keypair\"\n3. Send me your public key so I can grant you access.\n\nThank you.";
+  if(c.email){ window.location.href="mailto:"+encodeURIComponent(c.email)+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body); }
+  else if(c.phone){ window.location.href="sms:"+encodeURIComponent(c.phone)+"?&body="+encodeURIComponent(body); }
+  log("Opening a prefilled invite to "+c.name+"\u2026","");
+};
+window._makeReceiver=async(id)=>{
+  const c=contacts.find(x=>x.id===id); if(!c) return;
+  c.receiver=true;
+  if(c.wallet && c.pub){
+    if(!masterKey){ log("Set your encryption passphrase (step 2) to grant "+c.name+" on-chain access.","err"); saveContacts(); return; }
+    try{
+      const {wrappedKey,ephemeralPubKey}=await wrapMasterForHeir(masterKey, c.pub);
+      const con=getContract(true);
+      log("Granting "+c.name+" on-chain access\u2026");
+      const tx=await con.addHeir(c.wallet, wrappedKey, ephemeralPubKey); await tx.wait();
+      c.onchain=true; log(c.name+" is now an on-chain receiver of your documents.","ok");
+    }catch(e){ log(cleanErr(e),"err"); }
+  } else {
+    log(c.name+" marked as a receiver. Add their wallet + public key (or Invite them) to grant real access.","");
+  }
+  saveContacts();
+};
+loadContacts();
+
+/* ---------- Proof of Life ---------- */
+const NET_KEY="willvault_networks";
+let networks=[];
+let lifeThreshold=2592000; // 30d default; overridden by vault interval when known
+const NETS={ github:{n:"GitHub",c:"#1f2328",i:"GH"}, x:{n:"X",c:"#000000",i:"X"}, instagram:{n:"Instagram",c:"#c13584",i:"IG"}, tiktok:{n:"TikTok",c:"#111111",i:"TT"}, linkedin:{n:"LinkedIn",c:"#0a66c2",i:"in"}, youtube:{n:"YouTube",c:"#ff0000",i:"YT"} };
+function loadNetworks(){ try{ networks=JSON.parse(localStorage.getItem(NET_KEY)||"[]"); }catch(_){ networks=[]; } renderNetworks(); renderLife(); }
+function saveNetworks(){ try{ localStorage.setItem(NET_KEY, JSON.stringify(networks)); }catch(_){} renderNetworks(); renderLife(); }
+function timeAgo(ts){ if(!ts) return "no activity"; let s=Math.floor(Date.now()/1000)-ts; if(s<0)s=0; if(s<60)return s+"s ago"; if(s<3600)return Math.floor(s/60)+"m ago"; if(s<86400)return Math.floor(s/3600)+"h ago"; return Math.floor(s/86400)+"d ago"; }
+async function fetchActivity(net,handle){
+  if(net==="github"){
+    try{ const r=await fetch("https://api.github.com/users/"+encodeURIComponent(handle)+"/events/public");
+      if(!r.ok) return {ok:false};
+      const d=await r.json();
+      if(Array.isArray(d)&&d.length){ return {ok:true,ts:Math.floor(new Date(d[0].created_at).getTime()/1000),source:"live"}; }
+      return {ok:true,ts:0,source:"live"};
+    }catch(_){ return {ok:false}; }
+  }
+  let h=0; for(let i=0;i<handle.length;i++) h=(h*31+handle.charCodeAt(i))>>>0;
+  const ago=(h%10800)+90; // ~1.5min..3h ago
+  return {ok:true, ts:Math.floor(Date.now()/1000)-ago, source:"demo"};
+}
+function renderNetworks(){
+  const el=$("networksList"); if(!el) return;
+  if(!networks.length){ el.innerHTML="<span class='tag' style='margin-top:12px;display:inline-block'>No networks connected yet.</span>"; return; }
+  el.innerHTML=networks.map((x,idx)=>{ const m=NETS[x.net]||{n:x.net,c:"#666",i:"?"};
+    const src=x.source==="live"?'<span class="live">live</span>':(x.source==="demo"?'<span class="demo">demo signal</span>':'');
+    const act=x.ts===undefined?"checking\u2026":(x.ts?("active "+timeAgo(x.ts)):"no recent activity");
+    return `<div class="netrow"><div class="netchip" style="background:${m.c}">${m.i}</div>`+
+      `<div class="netbody"><div class="netname">${esc(m.n)} <span class="mono">@${esc(x.handle)}</span></div>`+
+      `<div class="netmeta">${act} ${src?"\u00b7 "+src:""}</div></div>`+
+      `<button class="danger small" onclick="_removeNet(${idx})">Remove</button></div>`;
+  }).join("");
+}
+function mostRecent(){ let best=null; for(const x of networks){ if(x.ts && (!best||x.ts>best.ts)) best={ts:x.ts,net:x.net}; } return best; }
+function renderLife(){
+  const el=$("lifeStatus"); if(!el) return;
+  if(!networks.length){ el.innerHTML="<span class='tag'>Add a network to see your status.</span>"; return; }
+  const mr=mostRecent();
+  if(!mr){ el.innerHTML="<span class='tag'>Checking activity\u2026 hit Re-check.</span>"; return; }
+  const age=Math.floor(Date.now()/1000)-mr.ts;
+  const alive=age<=lifeThreshold;
+  const m=NETS[mr.net]||{n:mr.net};
+  el.innerHTML=`<div class="lifebig ${alive?"":"silent"}"><div class="lifedot"></div>`+
+    `<div><div class="lifetitle">${alive?"You're active - vault sealed":"Silent across all networks"}</div>`+
+    `<div class="lifesub">Most recent activity ${timeAgo(mr.ts)} on ${esc(m.n)}. ${alive?"Your dead-man's switch is held open by your presence.":"If this continues past your window, your heirs can claim."}</div></div></div>`;
+}
+$("addNetworkBtn").onclick=async ()=>{
+  const net=$("plNet").value; const handle=$("plHandle").value.trim().replace(/^@/,"");
+  if(!handle){ log("Enter a handle.","err"); return; }
+  const obj={net,handle,source:(net==="github"?"live":"demo")}; networks.push(obj); $("plHandle").value="";
+  saveNetworks(); log("Checking "+(NETS[net]?NETS[net].n:net)+" activity\u2026");
+  const r=await fetchActivity(net,handle);
+  if(!r.ok){ obj.ts=0; log("Couldn't find that "+(NETS[net]?NETS[net].n:net)+" account.","err"); }
+  else { obj.ts=r.ts; obj.source=r.source; log((NETS[net]?NETS[net].n:net)+": "+(r.ts?("active "+timeAgo(r.ts)):"no recent activity"),"ok"); }
+  saveNetworks();
+};
+window._removeNet=(i)=>{ networks.splice(i,1); saveNetworks(); };
+async function refreshLife(){
+  if(!networks.length){ log("Add a network first.","err"); return; }
+  log("Re-checking activity across your networks\u2026");
+  for(const x of networks){ const r=await fetchActivity(x.net,x.handle); if(r.ok){ x.ts=r.ts; x.source=r.source; } }
+  saveNetworks(); log("Activity refreshed.","ok");
+}
+$("refreshLifeBtn").onclick=refreshLife;
+$("lifeCheckInBtn").onclick=async ()=>{
+  const mr=mostRecent();
+  if(!mr){ log("Add a network and re-check activity first.","err"); return; }
+  const age=Math.floor(Date.now()/1000)-mr.ts;
+  if(age>lifeThreshold){ log("You appear silent across all networks - this is exactly when the switch would release. Not syncing.","err"); return; }
+  try{
+    const c=getContract(true);
+    log("Syncing proof-of-life to chain (on-chain check-in)\u2026");
+    const tx=await c.checkIn(); await tx.wait();
+    log("Proof-of-life synced - your vault is resealed by your activity.","ok");
+    if(typeof refreshOwner==="function") refreshOwner();
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+document.querySelector('[data-tab="life"]').addEventListener("click", ()=>{ if(networks.length) refreshLife(); });
+loadNetworks();
+
+/* ---------- Endowment & $LEGACY ---------- */
+$("depositBtn").onclick=async()=>{
+  try{ const amt=$("depAmt").value.trim(); if(!amt||Number(amt)<=0) throw new Error("Enter an amount to deposit.");
+    const c=getContract(true); log("Depositing "+amt+" MON into your endowment\u2026");
+    const tx=await c.deposit({value:ethers.parseEther(amt)}); await tx.wait();
+    log("Deposited "+amt+" MON - held for your heirs, and you earned $LEGACY.","ok"); $("depAmt").value="";
+    refreshEndow(); if(typeof refreshProfile==="function") refreshProfile();
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+$("withdrawEndBtn").onclick=async()=>{
+  try{ const c=getContract(true); log("Withdrawing your endowment\u2026"); const tx=await c.withdrawEndowment(); await tx.wait(); log("Endowment withdrawn back to your wallet.","ok"); refreshEndow(); }
+  catch(e){ log(cleanErr(e),"err"); }
+};
+async function refreshEndow(){
+  const el=$("endowStatus"); if(!el||!account) return;
+  try{ const c=getContract(false); const e=await c.getEndowment(account);
+    const principal=Number(ethers.formatEther(e.principal));
+    if(principal<=0){ el.innerHTML="<span class='tag'>No endowment yet - deposit MON to leave your heirs value, not just documents.</span>"; return; }
+    const proj=Number(ethers.formatEther(e.projectedValue));
+    el.innerHTML=`<div class="lifebig"><div class="lifedot"></div><div><div class="lifetitle">${principal.toFixed(4)} MON deposited</div><div class="lifesub">Projected value @8% APR: <b>${proj.toFixed(4)} MON</b> \u00b7 paid to your heirs as a life-insurance payout on release.</div></div></div>`;
+  }catch(_){ el.innerHTML="<span class='tag'>Could not load endowment.</span>"; }
+}
+document.querySelector('[data-tab="owner"]').addEventListener("click", ()=>{ if(account){ refreshOwner(); refreshEndow(); } });
+
+$("navEarn").onclick = ()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
+  ["notarize","owner","heir","profile","life","earn"].forEach(t=>$("tab-"+t).classList.add("hidden"));
+  $("tab-earn").classList.remove("hidden");
+  $("tab-earn").scrollIntoView({behavior:"smooth",block:"start"});
+  if(account) refreshEarn();
+};
+$("earnPostBtn").onclick=async()=>{
+  try{
+    if(!account) throw new Error("Connect your wallet first.");
+    const info=await getContract(false).getVaultInfo(account);
+    if(!info.exists) throw new Error("Create a vault first (Inherit tab) - then every post earns you $LEGACY.");
+    const c=getContract(true);
+    log("Logging your post on-chain (earning 10 $LEGACY)\u2026");
+    const tx=await c.checkIn(); await tx.wait();
+    let n=0; try{ n=parseInt(localStorage.getItem("willvault_posts")||"0"); }catch(_){}
+    n+=1; try{ localStorage.setItem("willvault_posts", String(n)); }catch(_){}
+    log("Posted! +10 $LEGACY earned, and your vault is resealed by your activity.","ok");
+    refreshEarn(); if(typeof refreshProfile==="function") refreshProfile();
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+async function refreshEarn(){
+  const el=$("earnStats"); if(!el||!account) return;
+  try{
+    const bal=await getContract(false).legacyBalance(account);
+    let n=0; try{ n=parseInt(localStorage.getItem("willvault_posts")||"0"); }catch(_){}
+    el.innerHTML='<div class="stats">'+
+      '<div class="stat"><div class="k">$LEGACY balance</div><div class="v">'+bal.toString()+'</div></div>'+
+      '<div class="stat"><div class="k">Posts logged</div><div class="v">'+n+'</div></div>'+
+      '<div class="stat"><div class="k">Per post</div><div class="v">10 $LEGACY</div></div>'+
+      '<div class="stat"><div class="k">Post daily \u2192 monthly</div><div class="v">~300</div></div>'+
+      '</div>';
+  }catch(_){}
+}
 
 function cleanErr(e){
   let m = e?.reason || e?.shortMessage || e?.message || String(e);

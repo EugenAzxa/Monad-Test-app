@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WillVault — On-chain Digital Inheritance on Monad</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#fbfbfd; --surface:#ffffff; --text:#1d1d1f; --muted:#86868b;
+    --line:#e5e5ea; --accent:#6d55f0; --accent2:#836EF9; --accent-press:#5a44d6;
+    --tint:rgba(109,85,240,.06); --good:#1a7f37; --bad:#d70015; --warn:#b25000;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.47}
+  /* ---------- Nav ---------- */
+  nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+    height:54px;padding:0 22px;background:rgba(251,251,253,.72);backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid rgba(0,0,0,.06)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:19px;letter-spacing:-.02em}
+  .brand .mk{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:15px}
+  .brand .sub{color:var(--muted);font-weight:400;font-size:15px}
+  .navr{display:flex;align-items:center;gap:12px}
+  .pill{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:980px;font-size:13px;font-weight:500;
+    background:#f0f0f3;color:var(--text)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--bad)}
+  /* ---------- Buttons ---------- */
+  button{font-family:inherit;cursor:pointer;border:0;border-radius:980px;padding:10px 20px;font-size:15px;font-weight:500;
+    background:var(--accent);color:#fff;transition:.18s ease}
+  button:hover{background:var(--accent-press)}
+  button:active{transform:scale(.98)}
+  button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  button.ghost{background:#f0f0f3;color:var(--text)}
+  button.ghost:hover{background:#e6e6eb}
+  button.danger{background:#fff0f1;color:var(--bad)}
+  button.danger:hover{background:#ffe1e3}
+  button.small{padding:8px 15px;font-size:13px}
+  /* ---------- Hero ---------- */
+  .hero{text-align:center;padding:76px 22px 30px;max-width:820px;margin:0 auto}
+  .eyebrow{color:var(--accent);font-weight:600;font-size:15px;letter-spacing:.01em;margin-bottom:14px}
+  .hero h1{font-size:clamp(40px,6.4vw,68px);line-height:1.04;font-weight:600;letter-spacing:-.035em;margin:0 0 18px}
+  .hero p{font-size:clamp(18px,2.4vw,22px);color:var(--muted);max-width:600px;margin:0 auto;font-weight:400;letter-spacing:-.01em}
+  /* ---------- Connection bar ---------- */
+  .conn{max-width:720px;margin:34px auto 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+  .conn input{flex:1;min-width:280px}
+  /* ---------- Segmented control ---------- */
+  .tabs{display:inline-flex;gap:4px;padding:4px;margin:0 auto;background:#ececf0;border-radius:14px}
+  .tabswrap{display:flex;justify-content:center;margin:52px 0 8px}
+  .tabs button{background:transparent;color:var(--muted);border-radius:10px;padding:9px 24px;font-weight:500;font-size:15px}
+  .tabs button:hover{background:transparent;color:var(--text)}
+  .tabs button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+  /* ---------- Sections & cards ---------- */
+  .section{max-width:760px;margin:0 auto;padding:26px 22px 40px}
+  .sechead{text-align:center;margin:16px 0 26px}
+  .sechead .eyebrow{margin-bottom:8px}
+  .sechead h2{font-size:34px;font-weight:600;letter-spacing:-.03em;margin:0}
+  .sechead p{color:var(--muted);font-size:17px;margin:8px auto 0;max-width:520px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:28px;margin-bottom:20px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .card h3{margin:0 0 4px;font-size:21px;font-weight:600;letter-spacing:-.02em}
+  .card p.desc{margin:0 0 20px;color:var(--muted);font-size:14.5px;line-height:1.5}
+  label{display:block;font-size:11px;color:var(--muted);margin:14px 0 6px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  input,select{width:100%;background:#f5f5f7;border:1px solid transparent;border-radius:12px;padding:12px 14px;color:var(--text);
+    font-size:15px;font-family:inherit;transition:.15s}
+  input::placeholder{color:#b0b0b8}
+  input:focus,select:focus{outline:0;border-color:var(--accent);background:#fff}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:190px}
+  .actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;align-items:center}
+  .step{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;
+    background:var(--tint);color:var(--accent);font-size:13px;font-weight:700;margin-right:10px}
+  .card h3.with-step{display:flex;align-items:center}
+  /* ---------- JS-injected bits ---------- */
+  .tag{display:inline-block;padding:2px 9px;border-radius:980px;font-size:12px;font-weight:500;background:var(--tint);color:var(--accent)}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;word-break:break-all;color:var(--muted)}
+  .item{background:#f9f9fb;border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-top:10px}
+  .item .t{font-weight:600;font-size:15px}
+  .status-big{font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px}
+  .status-big .dot{width:9px;height:9px}
+  /* ---------- Log ---------- */
+  .logwrap{max-width:760px;margin:0 auto 60px;padding:0 22px}
+  .log{background:#1d1d1f;border-radius:16px;padding:16px 18px;font-family:ui-monospace,"SF Mono",Menlo,monospace;
+    font-size:12.5px;max-height:220px;overflow:auto;color:#e8e8ed}
+  .log div{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+  .log a{color:var(--accent2)}
+  .warnbox{background:#fff8ec;border:1px solid #f2d9a8;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#8a5a00;margin-top:14px;line-height:1.5}
+  .hidden{display:none}
+  a{color:var(--accent)}
+  hr{border:0;border-top:1px solid var(--line);margin:20px 0}
+  .foot{text-align:center;color:var(--muted);font-size:12px;padding:0 22px 50px}
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand"><span class="mk">🔐</span> WillVault <span class="sub">Monad</span></div>
+  <div class="navr">
+    <span id="netPill" class="pill"><span class="dot"></span> Not connected</span>
+    <button id="connectBtn">Connect Wallet</button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="eyebrow">On-chain digital inheritance</div>
+  <h1>Your legacy,<br>secured forever.</h1>
+  <p>Notarize what matters, pass it on automatically, and give your heirs a key that only opens when it must.</p>
+  <div class="conn">
+    <input id="contractAddr" value="0xd4EF7228A70d1d9Bd11a2b7333d5b37F4799CF77" placeholder="Deployed contract address" />
+    <button class="ghost" id="addNetBtn">Add Monad Testnet</button>
+  </div>
+</header>
+
+<div class="tabswrap">
+  <div class="tabs">
+    <button data-tab="notarize" class="active">Protect</button>
+    <button data-tab="owner">Inherit</button>
+    <button data-tab="heir">Claim</button>
+  </div>
+</div>
+
+<!-- ===================== PROTECT ===================== -->
+<section id="tab-notarize" class="section">
+  <div class="sechead">
+    <div class="eyebrow">Protect</div>
+    <h2>Prove it existed. Prove it's unchanged.</h2>
+    <p>A permanent on-chain fingerprint of any document — impossible to forge or alter without anyone noticing.</p>
+  </div>
+
+  <div class="card">
+    <h3>Notarize a document</h3>
+    <p class="desc">We compute a keccak256 fingerprint of your file and record it on Monad with your address and a timestamp. The file itself never leaves your browser.</p>
+    <div class="row"><div><label>Choose file</label><input type="file" id="notFile" /></div></div>
+    <div class="row">
+      <div><label>Title</label><input id="notTitle" placeholder="e.g. Last Will &amp; Testament" /></div>
+      <div><label>Category</label>
+        <select id="notCat"><option>will</option><option>deed</option><option>insurance</option><option>trust</option><option>other</option></select>
+      </div>
+    </div>
+    <div id="notHash" class="mono" style="margin-top:12px"></div>
+    <div class="actions"><button id="notarizeBtn">Notarize on Monad</button></div>
+  </div>
+
+  <div class="card">
+    <h3>Verify a document</h3>
+    <p class="desc">Upload any file to check whether its fingerprint is on record — and exactly who registered it, and when.</p>
+    <div class="row"><div><label>Choose file to verify</label><input type="file" id="verFile" /></div></div>
+    <div class="actions"><button class="ghost" id="verifyBtn">Verify</button></div>
+    <div id="verResult"></div>
+  </div>
+</section>
+
+<!-- ===================== INHERIT ===================== -->
+<section id="tab-owner" class="section hidden">
+  <div class="sechead">
+    <div class="eyebrow">Inherit</div>
+    <h2>A dead-man's switch for your estate.</h2>
+    <p>Add encrypted documents and name your heirs. If you stop checking in, access is released to them — automatically.</p>
+  </div>
+
+  <div class="card">
+    <h3 class="with-step"><span class="step">1</span>Create your vault</h3>
+    <p class="desc">Set how long you can stay silent before your heirs gain access. Use 60 seconds for a live demo; weeks or months in real life.</p>
+    <div class="row">
+      <div><label>Check-in interval (seconds)</label><input id="interval" type="number" value="60" /></div>
+      <div style="flex:0 0 auto;display:flex;align-items:flex-end"><button id="createVaultBtn">Create Vault</button></div>
+    </div>
+    <div id="vaultStatus" style="margin-top:16px"></div>
+    <div class="actions" id="vaultControls" style="display:none">
+      <button id="checkInBtn">✅ Check in (I'm alive)</button>
+      <button class="danger" id="releaseNowBtn">Release now</button>
+      <button class="ghost small" id="refreshOwnerBtn">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="with-step"><span class="step">2</span>Set your encryption passphrase</h3>
+    <p class="desc">Your documents are encrypted with a key derived from this passphrase (PBKDF2 → AES-GCM). It never leaves your browser and is never stored on-chain.</p>
+    <div class="row">
+      <div><label>Passphrase</label><input id="passphrase" type="password" placeholder="a strong secret only you know" /></div>
+      <div style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="ghost" id="setPassBtn">Set / derive key</button></div>
+    </div>
+    <div id="passState" class="mono" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="with-step"><span class="step">3</span>Add an encrypted document</h3>
+    <p class="desc">The file is encrypted in your browser, then its fingerprint and encrypted payload are stored on-chain. (Demo stores small files directly on-chain; production uses IPFS.)</p>
+    <div class="row"><div><label>Choose file</label><input type="file" id="docFile" /></div></div>
+    <div class="row">
+      <div><label>Title</label><input id="docTitle" placeholder="e.g. House deed" /></div>
+      <div><label>Category</label>
+        <select id="docCat"><option>will</option><option>deed</option><option>insurance</option><option>trust</option><option>other</option></select>
+      </div>
+    </div>
+    <div class="actions"><button id="addDocBtn">Encrypt &amp; add to vault</button></div>
+    <div id="docList"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="with-step"><span class="step">4</span>Name an heir</h3>
+    <p class="desc">Enter your heir's wallet address and the public key they generated in the Claim tab. Your master key is wrapped (ECDH) so only they can unwrap it — and only after release.</p>
+    <div class="row"><div><label>Heir wallet address</label><input id="heirAddr" placeholder="0x…" /></div></div>
+    <div class="row"><div><label>Heir public key (from their Claim tab)</label><input id="heirPub" placeholder="base64 public key" /></div></div>
+    <div class="actions"><button id="addHeirBtn">Wrap key &amp; add heir</button></div>
+    <div id="heirList"></div>
+  </div>
+</section>
+
+<!-- ===================== CLAIM ===================== -->
+<section id="tab-heir" class="section hidden">
+  <div class="sechead">
+    <div class="eyebrow">Claim</div>
+    <h2>Inherit what was left to you.</h2>
+    <p>Generate your key, watch for release, then decrypt everything — all in your browser, no one else can.</p>
+  </div>
+
+  <div class="card">
+    <h3 class="with-step"><span class="step">1</span>Generate your heir key</h3>
+    <p class="desc">Creates an ECDH keypair in your browser. Share the public key with the vault owner. Save your private key — it's the only way to unlock your inheritance.</p>
+    <div class="actions"><button id="genHeirBtn">Generate keypair</button><button class="ghost" id="dlHeirBtn" disabled>⬇ Download private key</button></div>
+    <label>Your public key (give this to the owner)</label>
+    <input id="heirPubOut" readonly placeholder="generate to see" />
+    <label>Your private key (keep secret!)</label>
+    <input id="heirPrivOut" type="password" readonly placeholder="generate to see" />
+    <hr/>
+    <label>Or paste a previously saved private key</label>
+    <input id="heirPrivIn" placeholder="paste your saved private key" />
+  </div>
+
+  <div class="card">
+    <h3 class="with-step"><span class="step">2</span>Check a vault</h3>
+    <p class="desc">Enter the owner's wallet address to see whether their dead-man's switch has released.</p>
+    <div class="row">
+      <div><label>Owner address</label><input id="ownerAddr" placeholder="0x…" /></div>
+      <div style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="ghost" id="checkVaultBtn">Check status</button></div>
+    </div>
+    <div id="heirVaultStatus" style="margin-top:14px"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="with-step"><span class="step">3</span>Claim &amp; recover documents</h3>
+    <p class="desc">Once released, claim your inheritance. Your private key unwraps the owner's master key and decrypts every document — all locally.</p>
+    <div class="actions">
+      <button id="claimBtn" disabled>Claim inheritance</button>
+      <button class="ghost" id="recoverBtn" disabled>🔓 Decrypt my documents</button>
+    </div>
+    <div id="heirDocs"></div>
+  </div>
+</section>
+
+<div class="logwrap">
+  <div class="log" id="log"><div>▸ Ready. Connect your wallet to begin.</div></div>
+</div>
+<div class="foot">WillVault · Built on Monad · Documents are encrypted in your browser before anything touches the chain.</div>
+
+<script>
+/* ---------- Config ---------- */
+const MONAD = {
+  chainIdHex: "0x279f",           // 10143
+  chainId: 10143,
+  chainName: "Monad Testnet",
+  rpc: "https://testnet-rpc.monad.xyz",
+  explorer: "https://testnet.monadexplorer.com",
+  symbol: "MON",
+};
+const ABI = [
+  "function notarize(bytes32 documentHash, string title, string category)",
+  "function verify(bytes32 documentHash) view returns (bool exists, address author, uint64 timestamp, string title, string category)",
+  "function createVault(uint64 checkInInterval)",
+  "function checkIn()",
+  "function setCheckInInterval(uint64 checkInInterval)",
+  "function releaseNow()",
+  "function addDocument(bytes32 documentHash, string title, string category, string encryptedURI)",
+  "function addHeir(address heir, string wrappedKey, string ephemeralPubKey)",
+  "function removeHeir(address heir)",
+  "function isReleased(address owner) view returns (bool)",
+  "function timeRemaining(address owner) view returns (uint256)",
+  "function claim(address owner)",
+  "function getVaultInfo(address owner) view returns (bool exists, uint64 checkInInterval, uint64 lastCheckIn, bool releasedManually, bool released, uint256 docCount, uint256 heirCount)",
+  "function getDocuments(address owner) view returns (tuple(bytes32 documentHash,string title,string category,string encryptedURI,uint64 addedAt)[])",
+  "function getHeirs(address owner) view returns (address[])",
+  "function getMyKeyMaterial(address owner) view returns (string wrappedKey, string ephemeralPubKey)",
+  "function isHeir(address owner, address heir) view returns (bool)"
+];
+
+/* ---------- State ---------- */
+let provider, signer, account, contract;
+let masterKey = null;        // owner's AES master key
+let heirPriv = null;         // heir's imported private key (CryptoKey)
+
+/* ---------- Helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const subtle = window.crypto.subtle;
+const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const unb64 = (s) => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+function log(msg, kind){ const l=$("log"); const d=document.createElement("div");
+  d.innerHTML = (kind==="err"?"❌ ":kind==="ok"?"✅ ":"▸ ")+msg; l.prepend(d); }
+function short(a){ return a ? a.slice(0,6)+"…"+a.slice(-4) : ""; }
+function getContract(needSigner){
+  const addr = $("contractAddr").value.trim();
+  if(!ethers.isAddress(addr)){ throw new Error("Enter the deployed contract address at the top first."); }
+  return new ethers.Contract(addr, ABI, needSigner ? signer : provider);
+}
+async function fileBytes(input){
+  const f = input.files[0]; if(!f) throw new Error("Pick a file first.");
+  return new Uint8Array(await f.arrayBuffer());
+}
+function hashBytes(bytes){ return ethers.keccak256(bytes); }
+
+/* ---------- Crypto (mirrors scripts/crypto-selftest.mjs) ---------- */
+async function deriveMasterKey(passphrase){
+  const salt = new TextEncoder().encode("willvault-salt-v1"); // deterministic per app for demo simplicity
+  const base = await subtle.importKey("raw", new TextEncoder().encode(passphrase), "PBKDF2", false, ["deriveKey"]);
+  return subtle.deriveKey({name:"PBKDF2",salt,iterations:200000,hash:"SHA-256"}, base,
+    {name:"AES-GCM",length:256}, true, ["encrypt","decrypt"]);
+}
+async function encryptDoc(key, bytes){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await subtle.encrypt({name:"AES-GCM",iv}, key, bytes);
+  return `aesgcm:${b64(iv)}:${b64(ct)}`;
+}
+async function decryptDoc(key, uri){
+  const [,ivB64,ctB64] = uri.split(":");
+  const pt = await subtle.decrypt({name:"AES-GCM",iv:unb64(ivB64)}, key, unb64(ctB64));
+  return new Uint8Array(pt);
+}
+async function wrapMasterForHeir(key, heirPubB64){
+  const heirPub = await subtle.importKey("raw", unb64(heirPubB64), {name:"ECDH",namedCurve:"P-256"}, false, []);
+  const eph = await subtle.generateKey({name:"ECDH",namedCurve:"P-256"}, true, ["deriveKey"]);
+  const wrapKey = await subtle.deriveKey({name:"ECDH",public:heirPub}, eph.privateKey,
+    {name:"AES-GCM",length:256}, false, ["encrypt","decrypt"]);
+  const raw = await subtle.exportKey("raw", key);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await subtle.encrypt({name:"AES-GCM",iv}, wrapKey, raw);
+  return { wrappedKey:`${b64(iv)}:${b64(ct)}`, ephemeralPubKey:b64(await subtle.exportKey("raw", eph.publicKey)) };
+}
+async function unwrapMaster(privKey, ephPubB64, wrappedKey){
+  const ephPub = await subtle.importKey("raw", unb64(ephPubB64), {name:"ECDH",namedCurve:"P-256"}, false, []);
+  const wrapKey = await subtle.deriveKey({name:"ECDH",public:ephPub}, privKey,
+    {name:"AES-GCM",length:256}, false, ["encrypt","decrypt"]);
+  const [ivB64,ctB64] = wrappedKey.split(":");
+  const raw = await subtle.decrypt({name:"AES-GCM",iv:unb64(ivB64)}, wrapKey, unb64(ctB64));
+  return subtle.importKey("raw", raw, {name:"AES-GCM",length:256}, true, ["encrypt","decrypt"]);
+}
+
+/* ---------- Wallet ---------- */
+$("connectBtn").onclick = async () => {
+  if(!window.ethereum){ log("MetaMask not found. Install it to continue.","err"); return; }
+  provider = new ethers.BrowserProvider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  signer = await provider.getSigner();
+  account = await signer.getAddress();
+  const net = await provider.getNetwork();
+  const onMonad = Number(net.chainId) === MONAD.chainId;
+  $("netPill").innerHTML = `<span class="dot" style="background:${onMonad?'var(--good)':'var(--warn)'}"></span> ${short(account)} · ${onMonad?'Monad':'Chain '+net.chainId}`;
+  $("connectBtn").textContent = "Connected";
+  log(`Connected ${short(account)} on chain ${net.chainId}`,"ok");
+  if(!onMonad) log("You're not on Monad Testnet — click “Add Monad Testnet”.","err");
+  window.ethereum.on?.("accountsChanged", ()=>location.reload());
+  window.ethereum.on?.("chainChanged", ()=>location.reload());
+};
+$("addNetBtn").onclick = async () => {
+  if(!window.ethereum){ log("MetaMask not found.","err"); return; }
+  try{
+    await window.ethereum.request({ method:"wallet_addEthereumChain", params:[{
+      chainId:MONAD.chainIdHex, chainName:MONAD.chainName, rpcUrls:[MONAD.rpc],
+      nativeCurrency:{name:"Monad",symbol:MONAD.symbol,decimals:18},
+      blockExplorerUrls:[MONAD.explorer]
+    }]});
+    log("Monad Testnet added / selected.","ok");
+  }catch(e){ log("Add network failed: "+e.message,"err"); }
+};
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll(".tabs button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    ["notarize","owner","heir"].forEach(t=>$("tab-"+t).classList.add("hidden"));
+    $("tab-"+b.dataset.tab).classList.remove("hidden");
+  };
+});
+
+/* ---------- Notarize ---------- */
+$("notFile").onchange = async () => {
+  try{ const h=hashBytes(await fileBytes($("notFile"))); $("notHash").textContent="keccak256: "+h; }
+  catch(_){}
+};
+$("notarizeBtn").onclick = async () => {
+  try{
+    const bytes = await fileBytes($("notFile"));
+    const h = hashBytes(bytes);
+    const c = getContract(true);
+    log("Sending notarize tx…");
+    const tx = await c.notarize(h, $("notTitle").value||"Untitled", $("notCat").value);
+    log("tx "+short(tx.hash)+" — waiting…");
+    await tx.wait();
+    log("Notarized on-chain! "+`<a target=_blank href="${MONAD.explorer}/tx/${tx.hash}">view</a>`,"ok");
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+$("verifyBtn").onclick = async () => {
+  try{
+    const h = hashBytes(await fileBytes($("verFile")));
+    const c = getContract(false);
+    const [exists,author,ts,title,cat] = await c.verify(h);
+    if(!exists){ $("verResult").innerHTML = `<div class="item" style="border-color:#f2b8bd"><b style="color:var(--bad)">✗ Not on record.</b><br><span class="mono">${h}</span></div>`; return; }
+    const d = new Date(Number(ts)*1000).toLocaleString();
+    $("verResult").innerHTML = `<div class="item" style="border-color:#a7dcb6"><b style="color:var(--good)">✓ Verified — unaltered &amp; on record.</b><br>
+      <div style="margin-top:6px">${title} · <span class="tag">${cat}</span></div>
+      <div class="mono">by ${author}<br>at ${d}</div></div>`;
+    log("Verified document by "+short(author),"ok");
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+
+/* ---------- Owner ---------- */
+$("createVaultBtn").onclick = async () => {
+  try{
+    const c = getContract(true);
+    const iv = BigInt($("interval").value||"60");
+    log("Creating vault…");
+    const tx = await c.createVault(iv); await tx.wait();
+    log("Vault created.","ok"); refreshOwner();
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+$("checkInBtn").onclick = async () => txnThen(c=>c.checkIn(),"Checked in — timer reset.");
+$("releaseNowBtn").onclick = async () => txnThen(c=>c.releaseNow(),"Vault released to heirs.");
+$("refreshOwnerBtn").onclick = refreshOwner;
+async function txnThen(fn,msg){
+  try{ const c=getContract(true); log("Sending tx…"); const tx=await fn(c); await tx.wait(); log(msg,"ok"); refreshOwner(); }
+  catch(e){ log(cleanErr(e),"err"); }
+}
+$("setPassBtn").onclick = async () => {
+  const p = $("passphrase").value;
+  if(!p){ log("Enter a passphrase.","err"); return; }
+  masterKey = await deriveMasterKey(p);
+  $("passState").textContent = "🔑 Master key derived and held in memory for this session.";
+  log("Encryption key derived.","ok");
+};
+$("addDocBtn").onclick = async () => {
+  try{
+    if(!masterKey) throw new Error("Set your encryption passphrase (step 2) first.");
+    const bytes = await fileBytes($("docFile"));
+    const h = hashBytes(bytes);
+    const uri = await encryptDoc(masterKey, bytes);
+    if(uri.length > 40000) log("Note: large file — on-chain storage may be costly; production uses IPFS.","");
+    const c = getContract(true);
+    log("Encrypting &amp; storing document…");
+    const tx = await c.addDocument(h, $("docTitle").value||"Untitled", $("docCat").value, uri);
+    await tx.wait();
+    log("Encrypted document added to vault.","ok"); refreshOwner();
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+$("addHeirBtn").onclick = async () => {
+  try{
+    if(!masterKey) throw new Error("Set your encryption passphrase (step 2) first.");
+    const addr = $("heirAddr").value.trim();
+    if(!ethers.isAddress(addr)) throw new Error("Invalid heir address.");
+    const pub = $("heirPub").value.trim();
+    if(!pub) throw new Error("Paste the heir's public key.");
+    const { wrappedKey, ephemeralPubKey } = await wrapMasterForHeir(masterKey, pub);
+    const c = getContract(true);
+    log("Wrapping key &amp; adding heir…");
+    const tx = await c.addHeir(addr, wrappedKey, ephemeralPubKey); await tx.wait();
+    log("Heir "+short(addr)+" added.","ok"); refreshOwner();
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+async function refreshOwner(){
+  try{
+    const c = getContract(false);
+    const info = await c.getVaultInfo(account);
+    if(!info.exists){ $("vaultStatus").innerHTML="<span class='tag'>No vault yet.</span>"; $("vaultControls").style.display="none"; return; }
+    $("vaultControls").style.display="flex";
+    const rem = Number(await c.timeRemaining(account));
+    const released = info.released;
+    const color = released?'var(--bad)':(rem<15?'var(--warn)':'var(--good)');
+    $("vaultStatus").innerHTML = `<div class="status-big"><span class="dot" style="background:${color}"></span>
+      ${released?'RELEASED — heirs can now claim.':'Active · releases in <b>'+rem+'s</b> if you do not check in'}</div>
+      <div class="mono" style="margin-top:6px">interval ${info.checkInInterval}s · ${info.docCount} document(s) · ${info.heirCount} heir(s)</div>`;
+    // documents
+    const docs = await c.getDocuments(account);
+    $("docList").innerHTML = docs.map(d=>`<div class="item"><div class="t">${d.title} <span class="tag">${d.category}</span></div>
+      <div class="mono">${d.documentHash}</div></div>`).join("");
+    // heirs
+    const heirs = await c.getHeirs(account);
+    $("heirList").innerHTML = heirs.map(a=>`<div class="item"><span class="mono">${a}</span></div>`).join("");
+  }catch(e){ log(cleanErr(e),"err"); }
+}
+
+/* ---------- Heir ---------- */
+let heirPrivB64 = null;
+$("genHeirBtn").onclick = async () => {
+  const kp = await subtle.generateKey({name:"ECDH",namedCurve:"P-256"}, true, ["deriveKey","deriveBits"]);
+  const pub = b64(await subtle.exportKey("raw", kp.publicKey));
+  heirPrivB64 = b64(await subtle.exportKey("pkcs8", kp.privateKey));
+  heirPriv = kp.privateKey;
+  $("heirPubOut").value = pub; $("heirPrivOut").value = heirPrivB64;
+  $("dlHeirBtn").disabled = false;
+  log("Heir keypair generated. Save your private key!","ok");
+};
+$("dlHeirBtn").onclick = () => {
+  const blob = new Blob([heirPrivB64], {type:"text/plain"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="willvault-heir-private-key.txt"; a.click();
+};
+$("heirPrivIn").onchange = async () => {
+  try{
+    const v = $("heirPrivIn").value.trim(); if(!v) return;
+    heirPriv = await subtle.importKey("pkcs8", unb64(v), {name:"ECDH",namedCurve:"P-256"}, false, ["deriveKey"]);
+    heirPrivB64 = v;
+    log("Private key loaded.","ok");
+  }catch(e){ log("Invalid private key.","err"); }
+};
+$("checkVaultBtn").onclick = async () => {
+  try{
+    const owner = $("ownerAddr").value.trim();
+    if(!ethers.isAddress(owner)) throw new Error("Invalid owner address.");
+    const c = getContract(false);
+    const isHeir = await c.isHeir(owner, account);
+    const released = await c.isReleased(owner);
+    const rem = Number(await c.timeRemaining(owner));
+    $("heirVaultStatus").innerHTML = `<div class="status-big"><span class="dot" style="background:${released?'var(--good)':'var(--warn)'}"></span>
+      ${released?'RELEASED — you may claim.':'Still active · releases in '+rem+'s'}</div>
+      <div class="mono" style="margin-top:6px">You are ${isHeir?'a named heir ✓':'NOT a named heir ✗'} of ${short(owner)}</div>`;
+    $("claimBtn").disabled = !(released && isHeir);
+    $("recoverBtn").disabled = !(released && isHeir);
+    log("Checked vault "+short(owner),"ok");
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+$("claimBtn").onclick = async () => {
+  try{
+    const owner = $("ownerAddr").value.trim();
+    const c = getContract(true);
+    log("Claiming…"); const tx = await c.claim(owner); await tx.wait();
+    log("Inheritance claimed on-chain.","ok");
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+$("recoverBtn").onclick = async () => {
+  try{
+    if(!heirPriv) throw new Error("Load or generate your heir private key first.");
+    const owner = $("ownerAddr").value.trim();
+    const c = getContract(true);
+    const [wrappedKey, ephPub] = await c.getMyKeyMaterial(owner);
+    const master = await unwrapMaster(heirPriv, ephPub, wrappedKey);
+    const docs = await c.getDocuments(owner);
+    if(docs.length===0){ $("heirDocs").innerHTML="<span class='tag'>No documents in this vault.</span>"; return; }
+    let html="";
+    for(const d of docs){
+      try{
+        const plain = await decryptDoc(master, d.encryptedURI);
+        const url = URL.createObjectURL(new Blob([plain]));
+        html += `<div class="item"><div class="t">${d.title} <span class="tag">${d.category}</span></div>
+          <a download="${d.title.replace(/[^\w.-]/g,'_')}" href="${url}">⬇ Download decrypted file</a></div>`;
+      }catch(err){
+        html += `<div class="item" style="border-color:#f2b8bd"><div class="t">${d.title}</div><span class="mono" style="color:var(--bad)">Could not decrypt.</span></div>`;
+      }
+    }
+    $("heirDocs").innerHTML = html;
+    log("Documents decrypted in your browser.","ok");
+  }catch(e){ log(cleanErr(e),"err"); }
+};
+
+function cleanErr(e){
+  let m = e?.reason || e?.shortMessage || e?.message || String(e);
+  return m.replace(/\s*\(action=.*$/,"");
+}
+</script>
+</body>
+</html>

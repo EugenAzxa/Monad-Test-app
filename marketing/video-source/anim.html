@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html,body{margin:0;padding:0;background:#000;}
+  canvas{display:block;}
+</style>
+</head>
+<body>
+<canvas id="c" width="1280" height="720"></canvas>
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const W = 1280, H = 720;
+
+// ---- Brand palette ----
+const BG      = '#fbfbfd';   // off-white
+const INK     = '#1d1d1f';   // near-black text
+const MUTE    = '#86868b';   // muted grey
+const PUR      = '#836EF9';   // primary purple
+const PUR2     = '#6d55f0';   // deep purple
+const PURDK    = '#4a41c2';   // dark purple
+const GOLD      = '#f5c451';   // legacy gold
+const PURSOFT   = 'rgba(131,110,249,0.12)';
+
+// ---- helpers ----
+const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+function easeOut(t){t=clamp(t,0,1);return 1-Math.pow(1-t,3);}
+function easeInOut(t){t=clamp(t,0,1);return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
+function lerp(a,b,t){return a+(b-a)*t;}
+// window [s,e] -> normalized 0..1, with hold
+function seg(t,s,e){return clamp((t-s)/(e-s),0,1);}
+// fade in/out envelope for a scene: appear over `ain`, hold, disappear over `aout`
+function env(t,s,e,ain,aout){
+  if(t<s||t>e) return 0;
+  const inA = clamp((t-s)/ain,0,1);
+  const outA = clamp((e-t)/aout,0,1);
+  return Math.min(easeOut(inA), easeOut(outA));
+}
+function rr(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function setFont(px,weight){ctx.font = (weight||600)+' '+px+'px -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif';}
+function text(str,x,y,px,weight,color,align){
+  setFont(px,weight);
+  ctx.fillStyle=color; ctx.textAlign=align||'left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(str,x,y);
+}
+function withAlpha(a,fn){ctx.save();ctx.globalAlpha=clamp(a,0,1);fn();ctx.restore();}
+
+// dotted background grid, gentle drift
+function bgDots(t){
+  const gap=46, r=1.4;
+  ctx.fillStyle='rgba(131,110,249,0.06)';
+  const off=(t*6)%gap;
+  for(let y=-gap;y<H+gap;y+=gap){
+    for(let x=-gap;x<W+gap;x+=gap){
+      ctx.beginPath();
+      ctx.arc(x+off*0.4, y+off, r, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+}
+
+// floating soft blobs
+function blob(cx,cy,r,color,a){
+  ctx.save();ctx.globalAlpha=a;
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+  g.addColorStop(0,color);g.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+// ---- shield / vault icon ----
+// draws a rounded shield with a keyhole, `p` = draw progress 0..1, `glow` 0..1
+function shield(cx,cy,s,p,glow,fillCol){
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.scale(s,s);
+  // glow
+  if(glow>0){
+    ctx.save();
+    ctx.shadowColor=PUR; ctx.shadowBlur=40*glow;
+    ctx.globalAlpha=glow;
+    ctx.beginPath();ctx.arc(0,0,60,0,Math.PI*2);ctx.strokeStyle='rgba(0,0,0,0)';ctx.stroke();
+    ctx.restore();
+  }
+  // shield path
+  ctx.beginPath();
+  ctx.moveTo(0,-70);
+  ctx.lineTo(55,-45);
+  ctx.lineTo(55,10);
+  ctx.quadraticCurveTo(55,60,0,82);
+  ctx.quadraticCurveTo(-55,60,-55,10);
+  ctx.lineTo(-55,-45);
+  ctx.closePath();
+  // fill with gradient
+  const g=ctx.createLinearGradient(0,-70,0,82);
+  g.addColorStop(0,PUR); g.addColorStop(1,fillCol||PUR2);
+  ctx.globalAlpha=easeOut(p);
+  ctx.fillStyle=g; ctx.fill();
+  // keyhole (drawn as we complete)
+  if(p>0.55){
+    const kp=easeOut((p-0.55)/0.45);
+    ctx.globalAlpha=kp;
+    ctx.fillStyle='#ffffff';
+    ctx.beginPath();ctx.arc(0,-2,12,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.moveTo(-6,4);ctx.lineTo(6,4);ctx.lineTo(10,34);ctx.lineTo(-10,34);ctx.closePath();ctx.fill();
+  }
+  ctx.restore();
+}
+
+// small line-icon: document
+function docIcon(cx,cy,s,col,a){
+  ctx.save();ctx.globalAlpha=a;ctx.translate(cx,cy);ctx.scale(s,s);
+  ctx.strokeStyle=col;ctx.lineWidth=4;ctx.lineJoin='round';ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(-26,-34);ctx.lineTo(14,-34);ctx.lineTo(30,-18);ctx.lineTo(30,34);ctx.lineTo(-26,34);ctx.closePath();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(14,-34);ctx.lineTo(14,-18);ctx.lineTo(30,-18);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-16,-6);ctx.lineTo(20,-6);ctx.moveTo(-16,6);ctx.lineTo(20,6);ctx.moveTo(-16,18);ctx.lineTo(8,18);ctx.stroke();
+  ctx.restore();
+}
+// heart (proof of life)
+function heart(cx,cy,s,col,a){
+  ctx.save();ctx.globalAlpha=a;ctx.translate(cx,cy);ctx.scale(s,s);
+  ctx.fillStyle=col;
+  ctx.beginPath();
+  ctx.moveTo(0,26);
+  ctx.bezierCurveTo(-30,4,-30,-22,-8,-22);
+  ctx.bezierCurveTo(-2,-22,0,-16,0,-12);
+  ctx.bezierCurveTo(0,-16,2,-22,8,-22);
+  ctx.bezierCurveTo(30,-22,30,4,0,26);
+  ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+// key
+function keyIcon(cx,cy,s,col,a){
+  ctx.save();ctx.globalAlpha=a;ctx.translate(cx,cy);ctx.scale(s,s);
+  ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=5;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(-14,0,12,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-2,0);ctx.lineTo(26,0);ctx.moveTo(18,0);ctx.lineTo(18,10);ctx.moveTo(26,0);ctx.lineTo(26,12);ctx.stroke();
+  ctx.restore();
+}
+
+// node person (circle head + shoulders)
+function person(cx,cy,s,col,a){
+  ctx.save();ctx.globalAlpha=a;ctx.translate(cx,cy);ctx.scale(s,s);
+  ctx.fillStyle=col;
+  ctx.beginPath();ctx.arc(0,-10,11,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.moveTo(-18,20);ctx.quadraticCurveTo(0,2,18,20);ctx.lineTo(18,24);ctx.lineTo(-18,24);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+// pill chip
+function chip(cx,cy,label,a,rise){
+  setFont(26,600);
+  const w=ctx.measureText(label).width+56;
+  const h=54;
+  ctx.save();ctx.globalAlpha=a;ctx.translate(0,(1-rise)*24);
+  rr(cx-w/2,cy-h/2,w,h,h/2);
+  ctx.fillStyle=PURSOFT;ctx.fill();
+  ctx.strokeStyle='rgba(131,110,249,0.35)';ctx.lineWidth=1.5;ctx.stroke();
+  // dot
+  ctx.beginPath();ctx.arc(cx-w/2+26,cy,6,0,Math.PI*2);ctx.fillStyle=PUR;ctx.fill();
+  text(label,cx-w/2+42,cy+9,26,600,PURDK,'left');
+  ctx.restore();
+}
+
+// ================= SCENES =================
+const DUR = 26.0; // seconds
+
+function drawFrame(t){
+  // base
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=BG; ctx.fillRect(0,0,W,H);
+  bgDots(t);
+  // ambient blobs drifting
+  blob(180+Math.sin(t*0.5)*30, 140+Math.cos(t*0.4)*20, 260, 'rgba(131,110,249,0.20)', 0.5);
+  blob(1120+Math.cos(t*0.45)*30, 600+Math.sin(t*0.5)*24, 300, 'rgba(109,85,240,0.16)', 0.5);
+
+  // ---------- SCENE 1: LOGO INTRO (0 - 4.2) ----------
+  {
+    const a = env(t,0.0,4.4,0.7,0.6);
+    if(a>0){
+      withAlpha(a,()=>{
+        const p = easeOut(seg(t,0.2,1.6));
+        const glow = Math.sin(clamp((t-1.2)/1.2,0,1)*Math.PI)*0.8;
+        const rise = (1-easeOut(seg(t,0.4,1.6)))*20;
+        shield(640,300-rise,1.15,p,glow,PUR2);
+        const wa=easeOut(seg(t,1.3,2.2));
+        withAlpha(wa,()=>{
+          text('WillVault',640,470,86,700,INK,'center');
+        });
+        const ta=easeOut(seg(t,1.8,2.7));
+        withAlpha(ta,()=>{
+          text('On-chain Digital Inheritance',640,520,30,500,MUTE,'center');
+        });
+      });
+    }
+  }
+
+  // ---------- SCENE 2: PROBLEM (4.2 - 8.0) ----------
+  {
+    const a=env(t,4.2,8.2,0.6,0.6);
+    if(a>0){
+      withAlpha(a,()=>{
+        text('Today, a lifetime can vanish.',640,150,44,700,INK,'center');
+        const words=['Lost.','Forged.','Hidden.','Contested.'];
+        const bx=640, spacing=250;
+        for(let i=0;i<4;i++){
+          const wa=easeOut(seg(t,4.7+i*0.28,5.2+i*0.28));
+          const x = bx + (i-1.5)*spacing;
+          withAlpha(wa,()=>{
+            text(words[i], x, 340, 40, 700, i===3?PUR2:MUTE, 'center');
+          });
+        }
+        // greying document that cracks
+        const dp=easeOut(seg(t,5.4,6.2));
+        docIcon(640,470,1.5,PUR2,dp*a);
+        // crack line
+        const cp=easeOut(seg(t,6.4,7.4));
+        if(cp>0){
+          ctx.save();ctx.globalAlpha=cp*0.9;ctx.strokeStyle='#c9c9ce';ctx.lineWidth=3;ctx.lineCap='round';
+          ctx.beginPath();ctx.moveTo(640,428);ctx.lineTo(628,458);ctx.lineTo(650,486);ctx.lineTo(636,516);ctx.stroke();ctx.restore();
+        }
+        withAlpha(easeOut(seg(t,6.8,7.6)),()=>{
+          text('Heirs are left locked out.',640,600,28,500,MUTE,'center');
+        });
+      });
+    }
+  }
+
+  // ---------- SCENE 3: SOLUTION (8.0 - 11.6) ----------
+  {
+    const a=env(t,8.0,11.8,0.6,0.6);
+    if(a>0){
+      withAlpha(a,()=>{
+        text('Seal it on-chain.',640,140,44,700,INK,'center');
+        // shield locking with glow pulse
+        const p=easeOut(seg(t,8.3,9.2));
+        const glow=Math.sin(clamp((t-9.0)/1.4,0,1)*Math.PI)*0.9;
+        shield(640,360,1.25,p,glow,PUR2);
+        // lock click ring
+        const rp=seg(t,9.0,9.9);
+        if(rp>0&&rp<1){
+          ctx.save();ctx.globalAlpha=(1-rp)*0.8;ctx.strokeStyle=PUR;ctx.lineWidth=3;
+          ctx.beginPath();ctx.arc(640,360,60+rp*70,0,Math.PI*2);ctx.stroke();ctx.restore();
+        }
+        withAlpha(easeOut(seg(t,9.6,10.4)),()=>{
+          text('An encrypted vault on Monad,',640,530,28,500,INK,'center');
+          text('with a built-in dead-man’s switch.',640,568,28,500,MUTE,'center');
+        });
+      });
+    }
+  }
+
+  // ---------- SCENE 4: HOW IT WORKS (11.6 - 17.4) ----------
+  {
+    const a=env(t,11.6,17.6,0.6,0.6);
+    if(a>0){
+      withAlpha(a,()=>{
+        text('How it works',640,120,40,700,INK,'center');
+        const cols=[
+          {x:320, n:'1', title:'Protect', sub:'Encrypt & notarize\nyour documents', icon:'doc'},
+          {x:640, n:'2', title:'Prove Life', sub:'Check in to reset\nthe countdown', icon:'heart'},
+          {x:960, n:'3', title:'Inherit', sub:'Heirs claim & decrypt\nautomatically', icon:'key'},
+        ];
+        cols.forEach((c,i)=>{
+          const ca=easeOut(seg(t,12.0+i*0.7,12.7+i*0.7));
+          const rise=(1-ca)*26;
+          ctx.save();ctx.globalAlpha=ca;ctx.translate(0,rise);
+          // card
+          rr(c.x-140,230,280,300,26);
+          ctx.fillStyle='#ffffff';ctx.fill();
+          ctx.strokeStyle='rgba(131,110,249,0.18)';ctx.lineWidth=1.5;ctx.stroke();
+          // number badge
+          ctx.beginPath();ctx.arc(c.x,285,26,0,Math.PI*2);ctx.fillStyle=PURSOFT;ctx.fill();
+          text(c.n,c.x,295,30,700,PUR2,'center');
+          // icon
+          if(c.icon==='doc') docIcon(c.x,370,1.0,PUR2,1);
+          if(c.icon==='heart'){
+            const beat=1+Math.sin(t*6)*0.06*Math.max(0,Math.sin(seg(t,12.7,17)>0?1:0));
+            heart(c.x,368,1.5*beat,PUR2,1);
+          }
+          if(c.icon==='key') keyIcon(c.x,368,1.5,PUR2,1);
+          // title
+          text(c.title,c.x,450,30,700,INK,'center');
+          // sub (2 lines)
+          const lines=c.sub.split('\n');
+          lines.forEach((ln,li)=>text(ln,c.x,486+li*26,20,500,MUTE,'center'));
+          ctx.restore();
+        });
+        // connecting flow line + moving key dot
+        const fp=seg(t,13.6,16.4);
+        if(fp>0){
+          ctx.save();ctx.globalAlpha=a*0.8;ctx.strokeStyle='rgba(131,110,249,0.4)';ctx.lineWidth=2;ctx.setLineDash([6,8]);
+          ctx.beginPath();ctx.moveTo(180,285);ctx.lineTo(1100,285);ctx.stroke();ctx.setLineDash([]);
+          const dx=lerp(180,1100,easeInOut(fp));
+          ctx.beginPath();ctx.arc(dx,285,7,0,Math.PI*2);ctx.fillStyle=PUR;ctx.fill();
+          ctx.restore();
+        }
+      });
+    }
+  }
+
+  // ---------- SCENE 5: FEATURES (17.4 - 22.4) ----------
+  {
+    const a=env(t,17.4,22.4,0.6,0.7);
+    if(a>0){
+      withAlpha(a,()=>{
+        text('More than a vault - a living legacy ecosystem',640,150,34,700,INK,'center');
+        const items=[
+          {y:250,l:'Tamper-proof notarization'},
+          {y:322,l:'Endowment yield that grows for your heirs'},
+          {y:394,l:'$LEGACY rewards for staying active'},
+          {y:466,l:'Proof-of-Life social oracle'},
+        ];
+        items.forEach((it,i)=>{
+          const ca=easeOut(seg(t,17.8+i*0.22,18.3+i*0.22));
+          chip(640,it.y,it.l,ca,ca);
+        });
+      });
+    }
+  }
+
+  // ---------- SCENE 6: CLOSING (22.2 - 26.0) ----------
+  {
+    const a=env(t,22.2,26.0,0.7,0.5);
+    if(a>0){
+      withAlpha(a,()=>{
+        // golden bloom behind
+        const bloom=easeOut(seg(t,22.6,24.2));
+        blob(640,300,220*bloom,'rgba(245,196,81,0.35)',0.9*a);
+        // three people connect with lines
+        const pp=easeOut(seg(t,22.5,23.6));
+        const pts=[[520,300],[760,300],[640,200]];
+        ctx.save();ctx.globalAlpha=pp*a*0.6;ctx.strokeStyle=PUR;ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);ctx.lineTo(pts[2][0],pts[2][1]);ctx.lineTo(pts[1][0],pts[1][1]);ctx.stroke();ctx.restore();
+        person(520,300,1.1,PUR2,pp);person(760,300,1.1,PUR2,pp);person(640,200,1.1,GOLD==GOLD?PUR:PUR,pp);
+        // shield small on top
+        const sp=easeOut(seg(t,23.4,24.2));
+        withAlpha(sp,()=>shield(640,270,0.55,1,0.6,PUR2));
+        // wordmark
+        withAlpha(easeOut(seg(t,23.8,24.8)),()=>{
+          text('WillVault',640,470,80,700,INK,'center');
+        });
+        withAlpha(easeOut(seg(t,24.3,25.2)),()=>{
+          text('Your legacy, secured on-chain.',640,522,30,600,PUR2,'center');
+        });
+        withAlpha(easeOut(seg(t,24.9,25.7)),()=>{
+          text('Live on Monad testnet today.',640,566,24,500,MUTE,'center');
+        });
+      });
+    }
+  }
+}
+window.drawFrame = drawFrame;
+window.DUR = DUR;
+</script>
+</body>
+</html>
